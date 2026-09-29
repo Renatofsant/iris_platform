@@ -1,0 +1,363 @@
+/*
+ * Plataforma Íris — folha de impressão de provas e atividades adaptadas.
+ *
+ * Escala exata da fonte:
+ *   • O tamanho escolhido pelo professor é aplicado em pt (unidade física de impressão)
+ *     na variável --iris-fonte; todo o conteúdo usa "em" relativo a ela.
+ *   • Nada pode ser mais largo que a área útil da página: se algo transbordar, o
+ *     Chrome e o Firefox reduzem a escala da página inteira ("ajustar à página"),
+ *     o que quebraria a fonte de 28 pt de um aluno com baixa visão. Por isso tabelas,
+ *     fórmulas, código e links longos quebram linha em vez de alargar a folha.
+ *   • O alto contraste P&B não depende de cores de fundo: funciona mesmo com
+ *     "Gráficos de plano de fundo" desligado no diálogo de impressão.
+ */
+
+@page {
+  size: A4;
+  margin: 15mm 14mm 16mm;
+}
+
+:root {
+  --iris-fonte: 14pt;
+  --iris-entrelinhas: 1.5;
+  --iris-familia: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --iris-texto: #000;
+  --iris-suave: #000;
+  --iris-linha: #000;
+  --iris-linha-fina: #000;
+  --iris-fundo-destaque: transparent;
+  --iris-peso-texto: 500;
+  --iris-espessura: 1.5pt;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html[data-tipografia="atkinson"] { --iris-familia: "Atkinson Hyperlegible", "Inter", ui-sans-serif, sans-serif; --iris-peso-texto: 400; }
+html[data-tipografia="dyslexic"] { --iris-familia: "OpenDyslexic", "Atkinson Hyperlegible", ui-sans-serif, sans-serif; --iris-peso-texto: 400; }
+
+/* Contraste padrão: tons de cinza suaves (pede "gráficos de plano de fundo" para os fundos) */
+html[data-contraste="padrao"] {
+  --iris-texto: #1a1a1a;
+  --iris-suave: #404040;
+  --iris-linha: #1a1a1a;
+  --iris-linha-fina: #8c8c8c;
+  --iris-fundo-destaque: #ececec;
+  --iris-peso-texto: 400;
+  --iris-espessura: 1pt;
+}
+
+* { box-sizing: border-box; }
+
+/* ------------------------------------------------------------------ Folha */
+
+.iris-folha {
+  font-family: var(--iris-familia);
+  font-size: var(--iris-fonte);
+  line-height: var(--iris-entrelinhas);
+  font-weight: var(--iris-peso-texto);
+  color: var(--iris-texto);
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: manual;
+}
+html[data-tipografia="dyslexic"] .iris-folha { word-spacing: 0.12em; }
+
+.iris-folha :where(p, ul, ol, dl, blockquote, pre, table, .iris-tabela) { margin: 0 0 0.75em; }
+.iris-folha img, .iris-folha svg, .iris-folha video { max-width: 100%; height: auto; }
+
+/* Cabeçalho escolar: legível pelo aluno, mas contido para não ocupar a 1ª página */
+.iris-cabecalho {
+  font-size: clamp(11pt, 0.62em, 18pt);
+  line-height: 1.35;
+  border: var(--iris-espessura) solid var(--iris-linha);
+  border-radius: 4pt;
+  padding: 0.6em 0.8em 0.75em;
+  margin-bottom: 1.1em;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.55em 1em;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.iris-campo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.4em; min-width: 0; }
+.iris-campo--inteiro { grid-column: span 6; }
+.iris-campo--metade { grid-column: span 3; }
+
+.iris-campo label { font-weight: 700; white-space: nowrap; }
+.iris-campo input,
+.iris-valor {
+  flex: 1 1 7em;
+  min-width: 0;
+  font: inherit;
+  font-weight: var(--iris-peso-texto);
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-bottom: 1pt solid var(--iris-linha);
+  border-radius: 0;
+  padding: 0.05em 0.2em;
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* Na impressão o <input> dá lugar a um texto que quebra linha (inputs cortam o texto).
+   Campo vazio vira uma linha para o aluno preencher à mão. */
+.iris-valor { display: none; overflow-wrap: break-word; min-height: 1.35em; }
+.iris-campo input::placeholder { color: transparent; }
+@media screen {
+  .iris-campo input::placeholder { color: #6b7280; }
+  .iris-campo input:focus-visible { outline: 3px solid #4338ca; outline-offset: 2px; }
+}
+
+/* Título e perfil */
+.iris-folha h1 {
+  font-size: 1.3em;
+  line-height: 1.2;
+  font-weight: 800;
+  margin: 0 0 0.35em;
+  letter-spacing: -0.005em;
+}
+.iris-folha h2 { font-size: 1.18em; font-weight: 800; line-height: 1.25; margin: 1.1em 0 0.4em; }
+.iris-folha h3 { font-size: 1.08em; font-weight: 700; line-height: 1.3; margin: 1em 0 0.35em; }
+.iris-folha :where(h4, h5, h6) { font-size: 1em; font-weight: 700; margin: 0.9em 0 0.3em; }
+.iris-folha :where(h1, h2, h3, h4, h5, h6) { break-after: avoid; page-break-after: avoid; }
+
+.iris-instrucao {
+  font-size: 0.8em;
+  color: var(--iris-suave);
+  margin: 0 0 1em;
+}
+
+/* Conteúdo adaptado */
+.iris-folha ul { list-style: disc; padding-left: 1.3em; }
+.iris-folha ol { list-style: decimal; padding-left: 1.6em; }
+.iris-folha li + li { margin-top: 0.3em; }
+.iris-folha :where(li, dt, dd, tr, blockquote, .iris-resumo) { break-inside: avoid; page-break-inside: avoid; }
+.iris-folha p { orphans: 2; widows: 2; }
+
+.iris-folha strong, .iris-folha b {
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.15em;
+}
+html[data-contraste="padrao"] .iris-folha strong { text-decoration: none; background: var(--iris-fundo-destaque); padding: 0 0.12em; }
+
+.iris-folha a { color: inherit; text-decoration: underline; }
+.iris-folha a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.75em; word-break: break-all; }
+
+.iris-folha code, .iris-folha pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.95em; }
+.iris-folha pre { white-space: pre-wrap; border: 1pt solid var(--iris-linha-fina); padding: 0.5em 0.7em; }
+
+.iris-folha blockquote { border-left: 3pt solid var(--iris-linha); padding-left: 0.8em; }
+
+.iris-folha table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.92em; }
+.iris-folha th, .iris-folha td {
+  border: var(--iris-espessura) solid var(--iris-linha);
+  padding: 0.35em 0.5em;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.iris-folha th { font-weight: 800; background: var(--iris-fundo-destaque); }
+.iris-folha thead { display: table-header-group; } /* repete o cabeçalho da tabela em cada página */
+
+.iris-resumo {
+  border: var(--iris-espessura) solid var(--iris-linha);
+  border-left-width: 5pt;
+  background: var(--iris-fundo-destaque);
+  padding: 0.5em 0.8em;
+}
+
+.iris-bloco { margin-top: 1.2em; padding-top: 0.2em; border-top: 1pt solid var(--iris-linha-fina); }
+.iris-bloco > :first-child { margin-top: 0.4em; }
+
+.iris-destaques { list-style: none !important; padding: 0 !important; }
+.iris-destaques li {
+  border: var(--iris-espessura) solid var(--iris-linha);
+  padding: 0.3em 0.6em;
+  background: var(--iris-fundo-destaque);
+}
+.iris-destaques li + li { margin-top: 0.4em; }
+
+.iris-passos { list-style: none !important; padding: 0 !important; counter-reset: passo; }
+.iris-passos > li {
+  counter-increment: passo;
+  display: grid;
+  grid-template-columns: 1.9em minmax(0, 1fr);
+  gap: 0.6em;
+  align-items: start;
+}
+.iris-passos > li + li { margin-top: 0.6em; }
+.iris-passos > li::before {
+  content: counter(passo);
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border: 2pt solid var(--iris-linha);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.9em;
+}
+.iris-passos p { margin: 0; }
+.iris-passo-titulo { font-weight: 800; }
+
+.iris-checklist { list-style: none !important; padding: 0 !important; }
+.iris-item { display: flex; gap: 0.6em; align-items: flex-start; }
+.iris-caixa {
+  flex-shrink: 0;
+  width: 0.95em;
+  height: 0.95em;
+  margin-top: calc((var(--iris-entrelinhas) * 1em - 0.95em) / 2);
+  border: 1.5pt solid var(--iris-linha);
+  border-radius: 2pt;
+}
+
+.iris-glossario dt { font-weight: 800; }
+.iris-glossario dd { margin: 0.1em 0 0.7em; }
+.iris-exemplo { display: block; margin-top: 0.15em; }
+.iris-exemplo b { text-decoration: none; }
+
+.iris-audiodescricao { border-left: 3pt solid var(--iris-linha); padding-left: 0.8em; }
+
+/* Duas colunas (somente fontes pequenas; o servidor impede acima de 16 pt) */
+html[data-colunas="2"] .iris-conteudo {
+  column-count: 2;
+  column-gap: 7mm;
+  column-rule: 0.75pt solid var(--iris-linha-fina);
+}
+html[data-colunas="2"] .iris-conteudo :where(h2, h3, h4) { break-after: avoid-column; }
+
+/* Espaço para respostas: altura proporcional à fonte, para a letra do aluno caber */
+.iris-respostas { margin-top: 1.4em; break-before: auto; }
+.iris-respostas h2 { margin-top: 0; }
+.iris-linha-resposta {
+  height: calc(var(--iris-entrelinhas) * 1.35em);
+  border-bottom: 1pt solid var(--iris-linha);
+  break-inside: avoid;
+}
+
+
+/* Glossário ilustrado (TEA): pictograma + frase única, cada cartão inteiro na mesma página */
+.iris-ilustrado { list-style: none !important; padding: 0 !important; }
+.iris-cartao {
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr);
+  gap: 0.8em;
+  align-items: start;
+  padding: 0.5em 0.6em;
+  border: var(--iris-espessura) solid var(--iris-linha);
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.iris-cartao + .iris-cartao { margin-top: 0.5em; }
+.iris-picto { width: 4.5em; height: 4.5em; display: grid; place-items: center; }
+.iris-picto img { width: 100%; height: 100%; object-fit: contain; }
+.iris-picto-vazio { font-size: 2em; font-weight: 800; }
+.iris-conceito { margin: 0; font-weight: 800; }
+.iris-frase { margin: 0.15em 0 0; }
+.iris-sugestao { margin: 0.3em 0 0; font-size: 0.8em; }
+.iris-credito { font-size: 8pt; margin-top: 0.6em; }
+
+/* Equações: MathJax escala com a fonte da folha (28 pt → fórmulas em 28 pt) */
+.iris-equacoes { list-style: none !important; padding: 0 !important; }
+.iris-equacoes > li + li { margin-top: 0.8em; }
+.iris-math-bloco { display: block; }
+.iris-folha mjx-container { overflow-wrap: normal; }
+.iris-folha mjx-container[display="true"] { margin: 0.4em 0 !important; }
+.iris-leitura { margin: 0.2em 0 0; font-size: 0.85em; }
+
+
+/* Consolidação na folha: quiz com círculos para marcar, curiosidades e exemplos */
+.iris-quiz { padding-left: 0 !important; list-style: none !important; }
+.iris-questao { break-inside: avoid; page-break-inside: avoid; }
+.iris-questao + .iris-questao { margin-top: 0.9em; }
+.iris-enunciado { font-weight: 700; margin: 0 0 0.3em; }
+.iris-alternativas { list-style: none !important; padding: 0 0 0 0.4em !important; margin: 0; }
+.iris-alternativas li { display: flex; gap: 0.45em; align-items: flex-start; }
+.iris-alternativas li + li { margin-top: 0.2em; }
+.iris-bolinha {
+  flex-shrink: 0;
+  width: 0.95em;
+  height: 0.95em;
+  margin-top: calc((var(--iris-entrelinhas) * 1em - 0.95em) / 2);
+  border: 1.5pt solid var(--iris-linha);
+  border-radius: 999px;
+}
+.iris-letra { flex-shrink: 0; white-space: nowrap; font-weight: 800; }
+.iris-curiosidades, .iris-exemplos, .iris-gabarito { list-style: none !important; padding: 0 !important; }
+.iris-curiosidade, .iris-exemplo-pratico {
+  border: var(--iris-espessura) solid var(--iris-linha);
+  padding: 0.4em 0.6em;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.iris-curiosidade + .iris-curiosidade, .iris-exemplo-pratico + .iris-exemplo-pratico { margin-top: 0.5em; }
+.iris-curiosidade p, .iris-exemplo-pratico p, .iris-gabarito p { margin: 0 0 0.2em; }
+.iris-curiosidade-titulo { font-weight: 800; }
+.iris-etiqueta { font-size: 0.75em; font-weight: 700; border: 1pt solid var(--iris-linha); padding: 0 0.4em; border-radius: 999px; }
+.iris-gabarito li { break-inside: avoid; page-break-inside: avoid; }
+.iris-gabarito li + li { margin-top: 0.5em; }
+
+/* Gabarito: página própria, tamanho fixo (é leitura do professor) */
+.iris-pagina-professor {
+  break-before: page;
+  page-break-before: always;
+  font-size: 12pt;
+  line-height: 1.45;
+}
+
+/* Orientações ao mediador: página própria e tamanho fixo (é leitura do professor) */
+.iris-guia {
+  break-before: page;
+  page-break-before: always;
+  font-size: 12pt;
+  line-height: 1.45;
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 2pt dashed var(--iris-linha);
+}
+.iris-guia strong { text-decoration: none; }
+
+/* ------------------------------------------------------------------ Tela */
+
+@media screen {
+  body { margin: 0; background: #e2e8f0; }
+
+  /* A folha na tela tem o tamanho real do A4 para o professor conferir a escala */
+  .iris-folha {
+    width: 210mm;
+    max-width: calc(100vw - 32px);
+    min-height: 297mm;
+    margin: 24px auto 64px;
+    padding: 15mm 14mm 16mm;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(15 23 42 / 0.12), 0 12px 32px rgb(15 23 42 / 0.10);
+    border-radius: 4px;
+  }
+  @media (max-width: 640px) {
+    .iris-folha { padding: 20px 16px; min-height: 0; }
+    .iris-cabecalho { grid-template-columns: minmax(0, 1fr); }
+    .iris-campo--inteiro, .iris-campo--metade { grid-column: auto; }
+  }
+}
+
+/* ------------------------------------------------------------------ Impressão */
+
+@media print {
+  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  .iris-sem-impressao { display: none !important; }
+  .iris-guia { border-top: 0; margin-top: 0; padding-top: 0; }
+  .iris-campo input { display: none !important; }
+  .iris-valor { display: block; }
+  .iris-folha {
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  html[data-contraste="padrao"] .iris-folha { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

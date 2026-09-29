@@ -1,0 +1,45 @@
+{% extends "auth/base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block conteudo %}
+  <h1 class="text-center text-xl font-semibold text-slate-900">Entrar</h1>
+  <p class="mt-1 text-center text-sm text-slate-600">Acesse com sua conta de professor(a).</p>
+
+  {% if erro %}
+  <div id="erro-formulario" tabindex="-1" role="alert" class="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-900 focus:outline-none">{{ erro }}</div>
+  {% elif expirou %}
+  <div role="status" class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Sua sessão expirou. Entre novamente para continuar.</div>
+  {% elif senha_redefinida %}
+  <div role="status" class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">Senha alterada. Entre com a nova senha.</div>
+  {% elif confirmado %}
+  <div role="status" class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">E-mail confirmado. Entre com sua senha.</div>
+  {% elif saiu %}
+  <div role="status" class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">Você saiu da plataforma.</div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('auth.login', next=destino) if destino else url_for('auth.login') }}" class="mt-5 space-y-4" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div>
+      <label for="email" class="text-sm font-medium text-slate-800">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required value="{{ email }}"
+             {% if erro %}aria-invalid="true" aria-describedby="erro-formulario"{% endif %} class="{{ classe_campo }}">
+    </div>
+    <div>
+      <label for="senha" class="text-sm font-medium text-slate-800">Senha</label>
+      <input id="senha" name="senha" type="password" autocomplete="current-password" required
+             {% if erro %}aria-invalid="true" aria-describedby="erro-formulario"{% endif %} class="{{ classe_campo }}">
+    </div>
+    {% if redefinicao_disponivel %}
+    <p class="-mt-2 text-right text-sm">
+      <a href="{{ url_for('auth.redefinir_senha') }}" class="font-medium text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Esqueci minha senha</a>
+    </p>
+    {% endif %}
+    <label class="flex items-center gap-2 text-sm text-slate-700">
+      <input type="checkbox" name="lembrar" value="1" class="h-4 w-4 rounded border-slate-300 accent-indigo-600">
+      Manter conectado neste computador
+    </label>
+    <button type="submit" class="h-11 w-full rounded-xl bg-indigo-600 text-[15px] font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Entrar</button>
+  </form>
+  <p class="mt-5 text-center text-sm text-slate-600">
+    Ainda não tem conta? <a href="{{ url_for('auth.register') }}" class="font-semibold text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Cadastre-se</a>
+  </p>
+{% endblock %}

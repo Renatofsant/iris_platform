@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Relatório AEE / BNCC{% if campos.aluno %} · {{ campos.aluno }}{% endif %} · Plataforma Íris</title>
+{% include "_favicon.html" %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    :root { --texto: #0f172a; --suave: #475569; --linha: #cbd5e1; --marca: #3730a3; --fundo-tabela: #f1f5f9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e2e8f0; color: var(--texto); font: 11pt/1.55 Inter, system-ui, sans-serif; }
+
+    .barra { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center;
+             padding: 12px 16px; background: #0f172a; color: #e2e8f0; font-size: 14px; }
+    .barra p { margin: 0 12px 0 0; }
+    .barra button { font: 600 14px Inter, sans-serif; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid #475569;
+                    background: transparent; color: #fff; cursor: pointer; }
+    .barra button.primario { background: #fff; color: #0f172a; border-color: #fff; }
+    .barra button[aria-pressed="true"] { background: #059669; border-color: #059669; }
+    .barra button:focus-visible { outline: 3px solid #22d3ee; outline-offset: 2px; }
+
+    .folha { width: 210mm; max-width: 100%; min-height: 297mm; margin: 24px auto; padding: 18mm 18mm 22mm; background: #fff;
+             box-shadow: 0 10px 30px rgb(15 23 42 / .18); }
+    .folha[contenteditable="true"] { outline: 3px dashed #059669; outline-offset: -8px; }
+
+    .timbre { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 10px;
+              border-bottom: 3px solid var(--marca); }
+    .timbre img { height: 16mm; width: auto; }
+    .timbre .escola { text-align: right; }
+    .timbre .escola strong { display: block; font-size: 13pt; }
+    .timbre .escola span { color: var(--suave); font-size: 9.5pt; }
+
+    h1 { margin: 8mm 0 1mm; font-size: 16pt; line-height: 1.25; text-align: center; }
+    .subtitulo { margin: 0 0 6mm; text-align: center; color: var(--suave); font-size: 10pt; }
+    h2 { margin: 7mm 0 2.5mm; padding-bottom: 1.5mm; font-size: 11.5pt; color: var(--marca); text-transform: uppercase;
+         letter-spacing: .04em; border-bottom: 1px solid var(--linha); break-after: avoid; }
+    p { margin: 0 0 2.5mm; }
+    ul { margin: 0; padding-left: 5mm; }
+    li { margin-bottom: 1.2mm; }
+
+    .identificacao { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--linha); border-radius: 2mm; overflow: hidden; }
+    .identificacao div { padding: 2mm 3mm; border-bottom: 1px solid var(--linha); }
+    .identificacao div:nth-child(odd) { border-right: 1px solid var(--linha); }
+    .identificacao dt { font-size: 8pt; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+    .identificacao dd { margin: 0; min-height: 1.4em; font-weight: 500; }
+    .identificacao .vazio { display: block; border-bottom: 1px dotted #94a3b8; min-height: 1.4em; }
+    .identificacao .largo { grid-column: 1 / -1; border-right: 0 !important; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    th, td { padding: 2mm 2.5mm; border: 1px solid var(--linha); text-align: left; vertical-align: top; }
+    th { background: var(--fundo-tabela); font-size: 8.5pt; text-transform: uppercase; letter-spacing: .04em; }
+    td.codigo { width: 27mm; font-weight: 700; white-space: nowrap; }
+    tr { break-inside: avoid; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .nota-tabela { color: var(--suave); font-size: 9pt; }
+    table.matriz th[scope="row"] { width: 34mm; background: #eef2ff; font-size: 9pt; text-transform: none; letter-spacing: 0; }
+    table.matriz .principio { display: block; margin-top: 1.2mm; color: var(--marca); font-size: 8pt; font-weight: 600; }
+    table.matriz td.codigos { width: 26mm; font-weight: 700; font-size: 8.5pt; }
+    .conferir { display: inline-block; margin-top: 1mm; padding: 0 1.5mm; border: 1px solid #b45309; border-radius: 1mm; color: #92400e; font-size: 8pt; font-weight: 600; }
+
+    .duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .legal { font-size: 9pt; color: var(--suave); }
+
+    .assinaturas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm; margin-top: 16mm; break-inside: avoid; }
+    .assinaturas div { padding-top: 2mm; border-top: 1px solid var(--texto); text-align: center; font-size: 9pt; }
+    .assinaturas span { display: block; color: var(--suave); font-size: 8pt; }
+
+    .rodape { margin-top: 10mm; padding-top: 3mm; border-top: 1px solid var(--linha); color: var(--suave); font-size: 8pt; text-align: center; }
+
+    @media (max-width: 800px) {
+      .folha { padding: 20px; margin: 0; min-height: 0; }
+      .identificacao, .duas-colunas, .assinaturas { grid-template-columns: 1fr; }
+      .identificacao div:nth-child(odd) { border-right: 0; }
+    }
+    @page { size: A4; margin: 14mm 14mm 16mm; }
+    @media print {
+      body { background: #fff; }
+      .barra, #iris-voz-raiz { display: none !important; }
+      .folha { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; outline: 0 !important; }
+      h2 { color: #000; border-color: #000; }
+      .timbre { border-color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <div class="barra" role="toolbar" aria-label="Ações do relatório">
+    <p>Revise o relatório antes de imprimir. Na janela de impressão, escolha <strong>“Salvar como PDF”</strong>.</p>
+    <button type="button" id="rel-editar" aria-pressed="false">Editar texto</button>
+    <button type="button" class="primario" onclick="window.print()">Imprimir / Salvar em PDF</button>
+  </div>
+
+  <main class="folha" id="relatorio" aria-labelledby="rel-titulo">
+    <header class="timbre">
+      <img src="{{ url_for('static', filename='img/logo-web.png') }}" alt="Plataforma Íris" width="353" height="144">
+      <div class="escola">
+        <strong>{{ campos.escola or "Nome da unidade escolar" }}</strong>
+        <span>Atendimento Educacional Especializado · Documento de apoio pedagógico</span>
+      </div>
+    </header>
+
+    <h1 id="rel-titulo">Relatório Pedagógico de Adaptação Curricular</h1>
+    <p class="subtitulo">Mapeamento de habilidades da BNCC e subsídios para o Plano de AEE · Emitido em {{ data_emissao }}</p>
+
+    <h2>1. Identificação</h2>
+    <dl class="identificacao">
+      {% for rotulo, chave in [("Estudante", "aluno"), ("Turma / ano", "turma"), ("Componente curricular", "disciplina"),
+                               ("Professor(a) responsável", "professor"), ("Perfil de acessibilidade", "perfil")] %}
+      <div><dt>{{ rotulo }}</dt><dd>{% if campos[chave] %}{{ campos[chave] }}{% else %}<span class="vazio"></span>{% endif %}</dd></div>
+      {% endfor %}
+      <div><dt>Data</dt><dd>{{ data_emissao }}</dd></div>
+      <div class="largo"><dt>Conteúdo adaptado</dt><dd>{{ campos.titulo or "—" }}</dd></div>
+    </dl>
+
+    <h2>2. Habilidades da BNCC contempladas</h2>
+    {% if relatorio.habilidades_bncc %}
+    <table>
+      <thead><tr><th scope="col">Código</th><th scope="col">Habilidade (BNCC)</th><th scope="col">Relação com o conteúdo adaptado</th></tr></thead>
+      <tbody>
+        {% for h in relatorio.habilidades_bncc %}
+        <tr>
+          <td class="codigo">{{ h.codigo }}</td>
+          <td>{% if h.descricao %}{{ h.descricao }}{% else %}Consulte a descrição no documento oficial da BNCC.<br><span class="conferir">Código a conferir</span>{% endif %}</td>
+          <td>{{ h.relacao or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>Nenhuma habilidade identificada automaticamente. Indique as habilidades manualmente.</p>
+    {% endif %}
+
+    {% if relatorio.matriz_impacto %}
+    <h2>3. Matriz de impacto pedagógico e mapeamento de barreiras</h2>
+    <p class="nota-tabela">Cada linha liga uma barreira do material original à estratégia do Desenho Universal para a
+      Aprendizagem (DUA) aplicada no texto adaptado e às habilidades da BNCC que ela torna acessíveis.</p>
+    <table class="matriz">
+      <caption class="sr">Matriz de impacto pedagógico</caption>
+      <thead>
+        <tr>
+          <th scope="col">Barreira neurocognitiva / sensorial</th>
+          <th scope="col">Barreira identificada no original</th>
+          <th scope="col">Estratégia DUA aplicada no texto</th>
+          <th scope="col">Habilidades BNCC contempladas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in relatorio.matriz_impacto %}
+        <tr>
+          <th scope="row" class="dimensao">{{ linha.dimensao_nome }}</th>
+          <td>{{ linha.barreira }}</td>
+          <td>{{ linha.estrategia_dua }}<span class="principio">{{ linha.principio_nome }}</span></td>
+          <td class="codigos">{{ linha.habilidades_bncc | join(", ") or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% elif relatorio.barreiras_identificadas %}
+    <h2>3. Barreiras de acesso ao currículo identificadas</h2>
+    <ul>{% for item in relatorio.barreiras_identificadas %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <h2>4. Justificativa pedagógica das adaptações</h2>
+    <p>{{ relatorio.justificativa_pedagogica or "—" }}</p>
+
+    <div class="duas-colunas">
+      {% if relatorio.estrategias_aee %}
+      <section>
+        <h2>5. Estratégias (sala comum e AEE)</h2>
+        <ul>{% for item in relatorio.estrategias_aee %}<li>{{ item }}</li>{% endfor %}</ul>
+      </section>
+      {% endif %}
+      {% if relatorio.recursos_acessibilidade %}
+      <section>
+        <h2>6. Recursos de acessibilidade e tecnologia assistiva</h2>
+        <ul>{% for item in relatorio.recursos_acessibilidade %}<li>{{ item }}</li>{% endfor %}</ul>
+      </section>
+      {% endif %}
+    </div>
+
+    {% if relatorio.criterios_avaliacao %}
+    <h2>7. Critérios de acompanhamento da aprendizagem</h2>
+    <ul>{% for item in relatorio.criterios_avaliacao %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <h2>8. Observações do(a) professor(a)</h2>
+    <p>{{ campos.observacoes or "" }}</p>
+    {% if not campos.observacoes %}<p style="border-bottom:1px dotted #94a3b8;min-height:1.6em"></p><p style="border-bottom:1px dotted #94a3b8;min-height:1.6em"></p>{% endif %}
+
+    <h2>9. Fundamentação legal</h2>
+    <ul class="legal">{% for item in fundamentacao %}<li>{{ item }}</li>{% endfor %}</ul>
+
+    <div class="assinaturas">
+      <div>Professor(a) regente<span>{{ campos.professor }}</span></div>
+      <div>Professor(a) do AEE<span>&nbsp;</span></div>
+      <div>Coordenação pedagógica<span>&nbsp;</span></div>
+    </div>
+
+    <p class="rodape">
+      Documento de apoio elaborado com auxílio da Plataforma Íris · Inteligência Artificial &amp; Acessibilidade Educacional.
+      Deve ser revisado e validado pela equipe pedagógica antes de compor o Plano de AEE.
+      Descrições das habilidades conforme a Base Nacional Comum Curricular (MEC).
+    </p>
+  </main>
+
+  <script>
+    const botaoEditar = document.getElementById("rel-editar");
+    const folha = document.getElementById("relatorio");
+    botaoEditar.addEventListener("click", () => {
+      const ativo = botaoEditar.getAttribute("aria-pressed") !== "true";
+      botaoEditar.setAttribute("aria-pressed", String(ativo));
+      botaoEditar.textContent = ativo ? "Concluir edição" : "Editar texto";
+      folha.contentEditable = String(ativo);
+      if (ativo) folha.focus();
+    });
+  </script>
+  {# Sem data-endpoint: o relatório tem dados pessoais do estudante, que não devem ir para a IA. #}
+  <script src="{{ url_for('static', filename='js/iris-voz.js') }}" defer data-conteudo="#relatorio"></script>
+</body>
+</html>

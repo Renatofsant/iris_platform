@@ -1,0 +1,46 @@
+{% extends "auth/base.html" %}
+{% block titulo %}Criar conta{% endblock %}
+{% macro invalido(nome) %}{% if campo_erro == nome %}aria-invalid="true" aria-describedby="erro-formulario"{% endif %}{% endmacro %}
+{% block conteudo %}
+  <h1 class="text-center text-xl font-semibold text-slate-900">Criar conta de professor(a)</h1>
+  <p class="mt-1 text-center text-sm text-slate-600">Cada professor vê somente os próprios alunos e materiais.</p>
+
+  {% if erro %}
+  <div id="erro-formulario" tabindex="-1" role="alert" class="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-900 focus:outline-none">{{ erro }}</div>
+  {% elif aviso %}
+  <div role="status" class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">{{ aviso }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('auth.register') }}" class="mt-5 space-y-4" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div>
+      <label for="nome" class="text-sm font-medium text-slate-800">Nome</label>
+      <input id="nome" name="nome" type="text" autocomplete="name" required maxlength="120" value="{{ valores.nome }}" {{ invalido("nome") }} class="{{ classe_campo }}">
+    </div>
+    <div>
+      <label for="email" class="text-sm font-medium text-slate-800">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required value="{{ valores.email }}" {{ invalido("email") }} class="{{ classe_campo }}">
+    </div>
+    <div>
+      <label for="senha" class="text-sm font-medium text-slate-800">Senha</label>
+      <input id="senha" name="senha" type="password" autocomplete="new-password" required minlength="{{ senha_minima }}"
+             aria-describedby="dica-senha{% if campo_erro == 'senha' %} erro-formulario{% endif %}"
+             {% if campo_erro == 'senha' %}aria-invalid="true"{% endif %} class="{{ classe_campo }}">
+      <p id="dica-senha" class="mt-1 text-xs text-slate-600">Pelo menos {{ senha_minima }} caracteres. Uma frase curta é fácil de lembrar e difícil de adivinhar.</p>
+    </div>
+    <div>
+      <label for="confirmacao" class="text-sm font-medium text-slate-800">Confirme a senha</label>
+      <input id="confirmacao" name="confirmacao" type="password" autocomplete="new-password" required {{ invalido("confirmacao") }} class="{{ classe_campo }}">
+    </div>
+    {% if convite_exigido %}
+    <div>
+      <label for="codigo_convite" class="text-sm font-medium text-slate-800">Código de convite</label>
+      <input id="codigo_convite" name="codigo_convite" type="text" autocomplete="off" required {{ invalido("codigo_convite") }} class="{{ classe_campo }}">
+    </div>
+    {% endif %}
+    <button type="submit" class="h-11 w-full rounded-xl bg-indigo-600 text-[15px] font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Criar conta</button>
+  </form>
+  <p class="mt-5 text-center text-sm text-slate-600">
+    Já tem conta? <a href="{{ url_for('auth.login') }}" class="font-semibold text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Entrar</a>
+  </p>
+{% endblock %}

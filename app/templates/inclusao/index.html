@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adaptação de conteúdos · Plataforma Íris</title>
+  <meta name="description" content="Plataforma Íris — Inteligência Artificial & Acessibilidade Educacional.">
+{% include "_favicon.html" %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5.3.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5.3.0/700.css">
+
+  {# Tailwind Play CDN: ideal para desenvolvimento. Em produção, gere um CSS com a CLI do Tailwind. #}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } },
+    };
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/inclusao.css') }}">
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js" defer></script>
+  <script type="module" src="{{ url_for('static', filename='js/inclusao.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/empatia.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/audio_graph.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/apoio_cognitivo.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/aee_analytics.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+</head>
+
+{%- macro segmento(nome, valor, rotulo, amostra=None) -%}
+  <label class="cursor-pointer">
+    <input type="radio" name="{{ nome }}" value="{{ valor }}" class="peer sr-only">
+    <span class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2">
+      {%- if amostra %}<span aria-hidden="true" class="grid h-5 w-5 place-items-center rounded-full border border-slate-400 text-[10px] font-bold" style="{{ amostra }}">A</span>{% endif -%}
+      {{ rotulo }}
+    </span>
+  </label>
+{%- endmacro -%}
+
+{# Interruptor liga/desliga (role="switch"); o estado fica em aria-checked #}
+{%- macro interruptor(id, rotulo, dica) -%}
+  <div>
+    <button type="button" id="{{ id }}" role="switch" aria-checked="false" aria-describedby="{{ id }}-dica"
+            class="group inline-flex items-center gap-2.5 rounded-lg py-1 pr-1 text-sm font-medium text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+      <span aria-hidden="true" class="relative h-5 w-9 shrink-0 rounded-full bg-slate-400 transition group-aria-checked:bg-indigo-600 motion-reduce:transition-none">
+        <span class="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition group-aria-checked:translate-x-4 motion-reduce:transition-none"></span>
+      </span>
+      {{ rotulo }}
+    </button>
+    <p id="{{ id }}-dica" class="ml-[2.9rem] text-xs text-slate-600">{{ dica }}</p>
+  </div>
+{%- endmacro -%}
+
+{%- macro icone(id, classes="h-5 w-5") -%}
+  <svg class="{{ classes }}" aria-hidden="true" focusable="false"><use href="#{{ id }}"></use></svg>
+{%- endmacro -%}
+
+{# Painéis de acessibilidade (estilo "Deep Tech"): cabeçalho escuro em degradê + caixa de apoio tingida.
+   Classes escritas por extenso para o Tailwind CDN gerá-las. #}
+{% set tons_painel = {
+  "indigo": ("border-indigo-200", "from-indigo-950 to-indigo-700", "border-indigo-200 bg-indigo-50 text-indigo-950", "text-indigo-700", "bg-indigo-700"),
+  "ciano": ("border-cyan-200", "from-cyan-950 to-cyan-700", "border-cyan-200 bg-cyan-50 text-cyan-950", "text-cyan-700", "bg-cyan-800"),
+  "violeta": ("border-violet-200", "from-violet-950 to-violet-700", "border-violet-200 bg-violet-50 text-violet-950", "text-violet-700", "bg-violet-700"),
+  "slate": ("border-slate-300", "from-slate-900 to-slate-700", "border-slate-200 bg-slate-100 text-slate-900", "text-slate-700", "bg-slate-800"),
+} %}
+{%- macro painel(texto, id_icone, tom, ajuda) -%}
+  {%- set borda, faixa, caixa, cor_info, cor_pilula = tons_painel[tom] -%}
+  <div class="overflow-hidden rounded-xl border {{ borda }} bg-white">
+    <h3 class="flex items-center gap-2 bg-gradient-to-r {{ faixa }} px-4 py-2.5 text-sm font-semibold text-white">
+      <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/15">{{ icone(id_icone, "h-4 w-4") }}</span> {{ texto }}
+    </h3>
+    <div class="p-4">
+      <div class="mb-3 flex gap-2.5 rounded-lg border px-3 py-2.5 text-xs leading-relaxed {{ caixa }}">
+        {{ icone("i-info", "mt-0.5 h-4 w-4 shrink-0 " ~ cor_info) }}
+        <p>
+          <span class="mr-1 inline-flex items-center rounded-full px-2 py-0.5 align-[1px] text-[10px] font-bold uppercase tracking-wide text-white {{ cor_pilula }}">Para que serve:</span>
+          {{ ajuda }}
+        </p>
+      </div>
+      {{ caller() }}
+    </div>
+  </div>
+{%- endmacro -%}
+
+{# Cor de cada perfil: (fundo, borda/estado marcado, bloco do ícone) — paleta da logomarca #}
+{% set cores_perfil = {
+  "BAIXA_VISAO": ("from-sky-50 to-blue-100/70", "border-sky-200 hover:border-sky-400 peer-checked:border-sky-600 peer-checked:ring-sky-600 peer-checked:shadow-sky-200/80", "from-sky-600 to-blue-600"),
+  "DEFICIENCIA_VISUAL_CEGO": ("from-indigo-50 to-violet-100/70", "border-indigo-200 hover:border-indigo-400 peer-checked:border-indigo-600 peer-checked:ring-indigo-600 peer-checked:shadow-indigo-200/80", "from-indigo-600 to-violet-600"),
+  "SURDEZ_LIBRAS": ("from-purple-50 to-fuchsia-100/70", "border-purple-200 hover:border-purple-400 peer-checked:border-purple-600 peer-checked:ring-purple-600 peer-checked:shadow-purple-200/80", "from-purple-600 to-fuchsia-600"),
+  "TEA_SUPORTE_1_2": ("from-emerald-50 to-teal-100/70", "border-emerald-200 hover:border-emerald-400 peer-checked:border-emerald-600 peer-checked:ring-emerald-600 peer-checked:shadow-emerald-200/80", "from-emerald-600 to-teal-700"),
+  "TDAH": ("from-amber-50 to-orange-100/70", "border-amber-300 hover:border-amber-500 peer-checked:border-orange-600 peer-checked:ring-orange-600 peer-checked:shadow-orange-200/80", "from-amber-600 to-orange-600"),
+} %}
+
+{% set icones_perfil = {
+  "BAIXA_VISAO": "i-olho",
+  "DEFICIENCIA_VISUAL_CEGO": "i-som",
+  "SURDEZ_LIBRAS": "i-mao",
+  "TEA_SUPORTE_1_2": "i-lista-numerada",
+  "TDAH": "i-lista-check",
+} %}
+
+<body class="min-h-full bg-slate-50 font-sans text-slate-800 antialiased">
+  {# Sprite de ícones (Lucide, licença ISC) #}
+  <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+    <defs>
+      <symbol id="i-olho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-som" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>
+      <symbol id="i-mao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+      <symbol id="i-lista-numerada" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12h11M10 18h11M10 6h11M4 10h2M4 6h1v4M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></symbol>
+      <symbol id="i-lista-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/></symbol>
+      <symbol id="i-mais" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></symbol>
+      <symbol id="i-menos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M5 12h14"/></symbol>
+      <symbol id="i-resetar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+      <symbol id="i-texto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+      <symbol id="i-espacamento" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H11M21 12H11M21 18H11M5 4v16M3 6l2-2 2 2M3 18l2 2 2-2"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></symbol>
+      <symbol id="i-pausa" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+      <symbol id="i-parar" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+      <symbol id="i-impressora" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+      <symbol id="i-lapis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+      <symbol id="i-brilho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4M22 5h-4"/></symbol>
+      <symbol id="i-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
+      <symbol id="i-imagem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+      <symbol id="i-estrela" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+      <symbol id="i-livro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+    </defs>
+  </svg>
+
+  <a href="#conteudo-principal"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-indigo-700 focus:px-4 focus:py-3 focus:text-white focus:shadow-lg iris-no-print">
+    Pular para o conteúdo principal
+  </a>
+
+  <div id="iris-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <header class="iris-no-print border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <a href="{{ url_for('inclusao_pagina.pagina') }}" class="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+        <img src="{{ url_for('static', filename='img/logo-web.png') }}" alt="Plataforma Íris — painel de adaptação"
+             width="353" height="144" class="h-10 w-auto sm:h-11">
+      </a>
+      <div class="flex items-center gap-1 sm:gap-2">
+        <p id="iris-status-ia" class="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 sm:inline-flex">
+          <span class="h-2 w-2 rounded-full bg-slate-400" aria-hidden="true"></span>
+          <span>Verificando serviço de IA…</span>
+        </p>
+        <button type="button" id="iris-aee-abrir" aria-haspopup="dialog" class="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Trajetória AEE</button>
+        <button type="button" id="iris-historico" aria-haspopup="dialog" class="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Histórico</button>
+        <span class="hidden max-w-[12rem] truncate px-1 text-sm text-slate-700 md:inline" title="{{ current_user.email }}">{{ current_user.nome }}</span>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Sair</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo-principal" tabindex="-1" class="focus:outline-none">
+    <div class="mx-auto max-w-7xl px-4 pb-28 pt-8 sm:px-6 lg:px-8">
+      <div class="iris-no-print mb-8">
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Adaptação de conteúdos</h1>
+        <p class="mt-2 max-w-2xl text-slate-600">
+          Transforme textos de Ciências em materiais acessíveis para cada estudante. Escolha o perfil,
+          cole o conteúdo e ajuste a leitura em tempo real.
+        </p>
+      </div>
+
+      <div class="grid items-start gap-6 lg:grid-cols-12">
+
+        {# ===================== Painel de configuração ===================== #}
+        <section aria-labelledby="titulo-config"
+                 class="iris-no-print rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-5 xl:col-span-4">
+          <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+            <h2 id="titulo-config" class="text-base font-semibold text-slate-900">Configurar adaptação</h2>
+            <p class="mt-0.5 text-sm text-slate-600">Campos marcados com <span aria-hidden="true">*</span><span class="sr-only">asterisco</span> são obrigatórios.</p>
+          </div>
+
+          <form id="iris-form" class="space-y-6 px-5 py-5 sm:px-6" novalidate
+                data-minimo="{{ minimo_texto }}" data-maximo="{{ limite_texto }}"
+                data-endpoint="{{ url_for('inclusao.adaptar') }}"
+                data-endpoint-saude="{{ url_for('inclusao.saude') }}"
+                data-endpoint-imagem="{{ url_for('inclusao.analisar_imagem') }}"
+                data-endpoint-alunos="{{ url_for('inclusao.listar_alunos') }}"
+                data-endpoint-metricas="/api/inclusao/metricas"
+                data-limite-imagem="{{ limite_imagem }}">
+
+            <div>
+              <div class="flex items-end justify-between gap-2">
+                <label for="iris-aluno" class="text-sm font-semibold text-slate-900">Aluno <span class="font-normal text-slate-600">(opcional)</span></label>
+                <button type="button" id="iris-gerenciar-alunos" aria-haspopup="dialog" class="rounded-md text-sm font-medium text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                  Gerenciar alunos
+                </button>
+              </div>
+              <select id="iris-aluno" aria-describedby="iris-aluno-dica iris-aluno-resumo" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                <option value="">Carregando…</option>
+              </select>
+              <p id="iris-aluno-dica" class="mt-1 text-xs text-slate-600">Carrega o perfil e as preferências de leitura salvos para o aluno.</p>
+              <p id="iris-aluno-resumo" class="mt-0.5 text-xs font-medium text-indigo-800"></p>
+            </div>
+
+            <fieldset>
+              <legend class="text-sm font-semibold text-slate-900">Tipo de conteúdo</legend>
+              <div class="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+                <label class="cursor-pointer">
+                  <input type="radio" name="modo" value="texto" class="peer sr-only" checked>
+                  <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium text-slate-700 transition peer-checked:bg-white peer-checked:text-slate-900 peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500">Texto</span>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="modo" value="imagem" class="peer sr-only">
+                  <span class="flex h-10 items-center justify-center rounded-lg text-sm font-medium text-slate-700 transition peer-checked:bg-white peer-checked:text-slate-900 peer-checked:shadow-sm peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500">Imagem ou equação</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div id="iris-bloco-perfil">
+            <fieldset aria-describedby="erro-perfil">
+              <legend class="text-sm font-semibold text-slate-900">Perfil de acessibilidade <span aria-hidden="true" class="text-rose-600">*</span></legend>
+              <div class="mt-3 grid gap-2">
+                {% for perfil in perfis %}
+                {% set fundo, borda, bloco = cores_perfil.get(perfil.codigo, cores_perfil["DEFICIENCIA_VISUAL_CEGO"]) %}
+                <label class="block cursor-pointer">
+                  <input type="radio" name="perfil" value="{{ perfil.codigo }}" class="peer sr-only" required
+                         aria-describedby="desc-{{ perfil.codigo }}"
+                         {% if loop.first %}checked{% endif %}>
+                  <span class="group/perfil relative flex items-start gap-3 rounded-xl border-2 bg-gradient-to-br p-3 transition hover:shadow-md peer-checked:shadow-lg peer-checked:ring-1 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2 {{ fundo }} {{ borda }}">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-gradient-to-br text-white shadow-md {{ bloco }}">
+                      {{ icone(icones_perfil.get(perfil.codigo, "i-livro")) }}
+                    </span>
+                    <span class="min-w-0 flex-1 pr-6">
+                      <span class="block text-sm font-semibold text-slate-900">{{ perfil.nome }}</span>
+                      <span id="desc-{{ perfil.codigo }}" class="mt-0.5 block text-[13px] leading-snug text-slate-700">{{ perfil.descricao }}</span>
+                    </span>
+                    {# Marca de seleção: o estado não depende só da cor #}
+                    <span class="iris-perfil-marca absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full border-2 border-slate-300 bg-white text-white" aria-hidden="true">
+                      <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    </span>
+                  </span>
+                </label>
+                {% endfor %}
+              </div>
+              <p id="erro-perfil" class="mt-2 hidden text-sm font-medium text-rose-700" data-erro-campo="perfil"></p>
+            </fieldset>
+            </div>
+
+            <div id="iris-bloco-texto">
+              <div class="flex items-end justify-between gap-2">
+                <label for="iris-texto" class="text-sm font-semibold text-slate-900">Conteúdo original <span aria-hidden="true" class="text-rose-600">*</span></label>
+                <span class="flex items-center gap-3">
+                <input type="file" id="iris-importar-arquivo" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="sr-only" tabindex="-1" aria-hidden="true">
+                <button type="button" id="iris-importar" data-endpoint="{{ url_for('inclusao.importar_arquivo') }}" aria-describedby="dica-importar" class="rounded-md text-sm font-medium text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                  Importar arquivo
+                </button>
+                <span id="dica-importar" class="sr-only">PDF, Word ou texto. O conteúdo é colocado na caixa de texto para você revisar.</span>
+                <button type="button" id="iris-exemplo" class="rounded-md text-sm font-medium text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                  Usar exemplo
+                </button>
+                </span>
+              </div>
+              <textarea id="iris-texto" name="texto" rows="10" required
+                        maxlength="{{ limite_texto }}"
+                        aria-describedby="dica-texto contador-texto erro-texto"
+                        placeholder="Cole aqui o texto da aula, o enunciado ou o trecho do livro didático…"
+                        class="mt-2 block w-full resize-y rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-[15px] leading-relaxed text-slate-900 shadow-sm placeholder:text-slate-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 aria-[invalid=true]:border-rose-600"></textarea>
+              <div class="mt-1.5 flex justify-between gap-3 text-xs text-slate-600">
+                <p id="dica-texto">Aceita Markdown (títulos com #, listas, tabelas).</p>
+                <p id="contador-texto" class="shrink-0 tabular-nums">0 / {{ "{:,}".format(limite_texto).replace(",", ".") }}</p>
+              </div>
+              <p id="erro-texto" class="mt-1 hidden text-sm font-medium text-rose-700" data-erro-campo="texto"></p>
+            </div>
+
+            <div id="iris-bloco-imagem" hidden>
+              <p class="text-sm font-semibold text-slate-900">Imagem de Física <span aria-hidden="true" class="text-rose-600">*</span></p>
+              <div id="iris-imagem-soltar" class="mt-2">
+                <input id="iris-imagem" type="file" accept="image/png,image/jpeg,image/gif,image/webp"
+                       aria-describedby="dica-imagem erro-imagem" class="peer sr-only">
+                <label for="iris-imagem"
+                       class="iris-zona-soltar flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 px-4 py-8 text-center transition hover:border-indigo-400 hover:bg-indigo-50/40 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2">
+                  {{ icone("i-imagem", "h-8 w-8 text-slate-500") }}
+                  <span class="text-sm font-semibold text-indigo-700">Escolher imagem</span>
+                  <span class="text-xs text-slate-600">ou arraste e solte aqui, ou cole com Ctrl+V</span>
+                </label>
+              </div>
+              <div id="iris-imagem-previa" hidden>
+                <div class="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+                  <img id="iris-imagem-miniatura" alt="Prévia da imagem selecionada" class="h-16 w-16 shrink-0 rounded-lg border border-slate-200 bg-white object-contain">
+                  <p id="iris-imagem-nome" class="min-w-0 flex-1 truncate text-sm text-slate-800"></p>
+                  <button type="button" id="iris-imagem-remover" class="h-9 shrink-0 rounded-lg px-3 text-sm font-medium text-rose-700 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">Remover</button>
+                </div>
+              </div>
+              <p id="dica-imagem" class="mt-1.5 text-xs text-slate-600">Diagramas, gráficos ou equações (PNG, JPEG, GIF ou WEBP). A IA gera o LaTeX e a audiodescrição; a imagem não fica armazenada.</p>
+              <p id="erro-imagem" class="mt-1 hidden text-sm font-medium text-rose-700" data-erro-campo="imagem"></p>
+            </div>
+
+            <details class="group rounded-xl border border-slate-200 bg-slate-50/60">
+              <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                Contexto da aula <span class="font-normal text-slate-600">(opcional)</span>
+                <svg class="h-4 w-4 text-slate-500 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </summary>
+              <div class="grid gap-4 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {% set classe_campo = "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" %}
+                <div>
+                  <label for="iris-disciplina" class="text-sm font-medium text-slate-800">Disciplina</label>
+                  <input id="iris-disciplina" name="disciplina" type="text" value="Física" autocomplete="off" class="{{ classe_campo }}">
+                </div>
+                <div>
+                  <label for="iris-tema" class="text-sm font-medium text-slate-800">Tema</label>
+                  <input id="iris-tema" name="tema" type="text" placeholder="Ex.: Leis de Newton" autocomplete="off" class="{{ classe_campo }}">
+                </div>
+                <div>
+                  <label for="iris-nivel" class="text-sm font-medium text-slate-800">Nível de ensino</label>
+                  <select id="iris-nivel" name="nivel_ensino" class="{{ classe_campo }}">
+                    <option value="">Não informado</option>
+                    <option>Ensino Fundamental II</option>
+                    <option>Ensino Médio</option>
+                    <option>Ensino Médio Técnico</option>
+                    <option>Educação de Jovens e Adultos (EJA)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="iris-ano" class="text-sm font-medium text-slate-800">Ano / série</label>
+                  <input id="iris-ano" name="ano_serie" type="text" placeholder="Ex.: 1º ano" autocomplete="off" class="{{ classe_campo }}">
+                </div>
+              </div>
+            </details>
+
+            <div class="flex flex-col gap-2 sm:flex-row lg:flex-col xl:flex-row">
+              <button type="submit" id="iris-enviar"
+                      class="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-80">
+                <span data-estado="ocioso" class="inline-flex items-center gap-2">{{ icone("i-brilho") }} <span data-rotulo>Adaptar conteúdo</span></span>
+                <span data-estado="carregando" class="hidden items-center gap-2"><span class="iris-spinner" aria-hidden="true"></span> Adaptando…</span>
+              </button>
+              <button type="button" id="iris-cancelar"
+                      class="hidden h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-[15px] font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </section>
+
+        {# ===================== Painel de preview adaptado ===================== #}
+        <section aria-labelledby="titulo-preview"
+                 class="iris-area-impressao rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-7 xl:col-span-8">
+          <div class="iris-no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div class="min-w-0">
+              <h2 id="titulo-preview" class="text-base font-semibold text-slate-900">Material adaptado</h2>
+              <div id="iris-selos" class="mt-1 flex flex-wrap gap-1.5 text-xs text-slate-600">Pré-visualização em tempo real</div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="iris-editar" aria-pressed="false" disabled
+                      aria-describedby="dica-editar"
+                      class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-emerald-600 aria-pressed:bg-emerald-50 aria-pressed:text-emerald-800">
+                {{ icone("i-lapis", "h-4 w-4") }} Editar texto
+              </button>
+              <span id="dica-editar" class="sr-only">Permite ao professor corrigir o material antes de imprimir ou ler em voz alta.</span>
+              <button type="button" id="iris-imprimir" disabled aria-haspopup="dialog"
+                      class="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-3 text-sm font-medium text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                {{ icone("i-impressora", "h-4 w-4") }} Exportar / Imprimir
+              </button>
+              <button type="button" id="iris-relatorio" disabled aria-describedby="dica-relatorio"
+                      class="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                {{ icone("i-livro", "h-4 w-4") }} Gerar Relatório AEE / BNCC (PDF)
+              </button>
+              <span id="dica-relatorio" class="sr-only">Abre, em nova aba, um relatório com as habilidades da BNCC e a justificativa pedagógica para o Plano de AEE, pronto para salvar em PDF.</span>
+              <form id="iris-relatorio-form" method="post" action="{{ url_for('inclusao_pagina.relatorio_aee') }}" target="_blank" hidden>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="dados">
+              </form>
+            </div>
+          </div>
+
+          {# ---------- Controles de acessibilidade & leitura: painéis estruturados ---------- #}
+          <div id="iris-ferramentas" role="group" aria-label="Ferramentas de leitura acessível"
+               class="iris-no-print grid gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-4 sm:grid-cols-2 sm:px-6">
+
+            {% call painel("Texto", "i-espacamento", "indigo", "Ajuste o tamanho e o espaçamento da fonte para facilitar a leitura visual do conteúdo e use a régua, o foco mínimo e as pausas para reduzir a fadiga.") %}
+              <fieldset class="mb-3">
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Tamanho da fonte</legend>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" id="iris-fonte-menos" aria-label="Diminuir fonte"
+                          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-disabled:cursor-not-allowed aria-disabled:opacity-40">
+                    {{ icone("i-menos", "h-4 w-4") }}
+                  </button>
+                  <label for="iris-fonte-slider" class="sr-only">Escala da fonte, de 14 a 36 pixels</label>
+                  <input type="range" id="iris-fonte-slider" min="14" max="36" step="1" value="18"
+                         class="h-2 w-full min-w-0 flex-1 cursor-pointer accent-indigo-600">
+                  <button type="button" id="iris-fonte-mais" aria-label="Aumentar fonte"
+                          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-disabled:cursor-not-allowed aria-disabled:opacity-40">
+                    {{ icone("i-mais", "h-4 w-4") }}
+                  </button>
+                  <output id="iris-fonte-valor" for="iris-fonte-slider" class="w-12 shrink-0 text-center text-sm font-semibold tabular-nums text-slate-800">18px</output>
+                  <button type="button" id="iris-fonte-resetar" aria-label="Restaurar tamanho padrão da fonte"
+                          class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                    {{ icone("i-resetar", "h-4 w-4") }}
+                  </button>
+                </div>
+              </fieldset>
+              <div>
+                <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600" aria-hidden="true">Entrelinhas</p>
+                <button type="button" id="iris-espacamento"
+                        class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                  {{ icone("i-espacamento", "h-4 w-4") }}
+                  <span class="sr-only">Espaçamento entre linhas:</span>
+                  <span id="iris-espacamento-rotulo">Normal (1.5)</span>
+                </button>
+              </div>
+              {# Anti-fadiga e foco cognitivo (static/js/apoio_cognitivo.js) #}
+              <fieldset class="mt-3 border-t border-slate-100 pt-3">
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Anti-fadiga e foco</legend>
+                <div class="flex flex-col gap-2">
+                  {{ interruptor("iris-regua", "Régua de leitura", "Faixa que acompanha o cursor e escurece o resto do texto. Teclado: Alt + ↑ / ↓.") }}
+                  {{ interruptor("iris-foco-minimo", "Foco mínimo", "Esconde tudo o que não é o material. Esc sai.") }}
+                  <div class="flex flex-wrap items-center gap-2">
+                    <label for="iris-pausa-intervalo" class="text-sm font-medium text-slate-800">Pausa regulatória</label>
+                    <select id="iris-pausa-intervalo" aria-describedby="iris-pausa-status"
+                            class="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                      <option value="0">Desligada</option>
+                      <option value="10">A cada 10 min</option>
+                      <option value="15">A cada 15 min</option>
+                      <option value="20">A cada 20 min</option>
+                      <option value="25">A cada 25 min</option>
+                    </select>
+                    <span id="iris-pausa-status" class="text-xs text-slate-600"></span>
+                  </div>
+                </div>
+              </fieldset>
+            {% endcall %}
+
+            {% call painel("Leitura e contraste", "i-som", "ciano", "Ouça o texto por sintetizador de voz, altere as cores de fundo para maior conforto e ouça os gráficos em forma de som.") %}
+              <fieldset class="mb-3">
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Leitura em voz alta</legend>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" id="iris-tts" disabled
+                          class="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-700 px-3 text-sm font-semibold text-white hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
+                    <svg class="h-4 w-4" aria-hidden="true" focusable="false"><use id="iris-tts-icone" href="#i-play"></use></svg>
+                    <span id="iris-tts-rotulo">Ouvir conteúdo</span>
+                  </button>
+                  <button type="button" id="iris-tts-parar" aria-label="Parar leitura" disabled
+                          class="grid h-9 w-9 place-items-center rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+                    {{ icone("i-parar", "h-3.5 w-3.5") }}
+                  </button>
+                  <label for="iris-tts-velocidade" class="sr-only">Velocidade da leitura</label>
+                  <select id="iris-tts-velocidade"
+                          class="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                    <option value="0.75">0,75×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="1.25">1,25×</option>
+                    <option value="1.5">1,5×</option>
+                  </select>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Contraste</legend>
+                <div class="flex flex-wrap gap-1">
+                  {{ segmento("tema", "padrao", "Padrão", "background:#fff;color:#1e293b") }}
+                  {{ segmento("tema", "alto-escuro", "Preto/amarelo", "background:#000;color:#ff0;border-color:#000") }}
+                  {{ segmento("tema", "alto-azul", "Azul", "background:#002b5c;color:#fff;border-color:#002b5c") }}
+                  {{ segmento("tema", "sepia", "Sépia", "background:#f5ecd9;color:#3b2f1e") }}
+                </div>
+              </fieldset>
+              {# Sonificação (static/js/audio_graph.js): vale para os gráficos e diagramas de forças da Íris Voice #}
+              <fieldset class="mt-3 border-t border-slate-100 pt-3">
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Sonificação de gráficos</legend>
+                <div class="flex items-center gap-1.5">
+                  <label for="iris-sonificacao-faixa" class="sr-only">Faixa de tons da sonificação</label>
+                  <select id="iris-sonificacao-faixa" aria-describedby="iris-sonificacao-dica"
+                          class="h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-700 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                    <option value="grave">Tons graves</option>
+                    <option value="media" selected>Tons médios</option>
+                    <option value="aguda">Tons agudos</option>
+                  </select>
+                  <button type="button" id="iris-sonificacao-testar"
+                          class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                    {{ icone("i-play", "h-3.5 w-3.5") }} Testar som
+                  </button>
+                </div>
+                <p id="iris-sonificacao-dica" class="mt-1 text-xs text-slate-600">Nos gráficos da Íris Voice, valor alto soa agudo e valor baixo, grave; use as setas para ouvir ponto a ponto.</p>
+              </fieldset>
+            {% endcall %}
+
+            {% call painel("Tipografia", "i-texto", "violeta", "Escolha fontes desenvolvidas para apoiar pessoas com dislexia ou baixa visão, destaque os termos técnicos com atalho para Libras e simplifique o texto em um mapa de causa e efeito.") %}
+              <fieldset>
+                <legend class="sr-only">Tipografia</legend>
+                <div class="flex flex-wrap gap-1">
+                  {{ segmento("tipografia", "padrao", "Padrão") }}
+                  {{ segmento("tipografia", "atkinson", "Atkinson") }}
+                  {{ segmento("tipografia", "dyslexic", "OpenDyslexic") }}
+                </div>
+              </fieldset>
+              {# Glossário Libras e organizador visual (static/js/inclusao.js, seções 16 e 17) #}
+              <fieldset class="mt-3 border-t border-slate-100 pt-3">
+                <legend class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Linguagem e organização</legend>
+                <div class="flex flex-col gap-2">
+                  {{ interruptor("iris-termos-libras", "Destacar termos técnicos", "Cada termo de Física vira um atalho: definição, exemplo e sinal no VLibras.") }}
+                  <div>
+                    <button type="button" id="iris-mapa-simples" aria-pressed="false" disabled aria-describedby="iris-mapa-simples-dica"
+                            class="inline-flex h-9 items-center gap-2 rounded-lg border border-violet-300 bg-violet-50 px-3 text-sm font-semibold text-violet-900 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-violet-700 aria-pressed:bg-violet-700 aria-pressed:text-white">
+                      {{ icone("i-lista-numerada", "h-4 w-4") }} <span id="iris-mapa-simples-rotulo">Gerar mapa conceitual simplificado</span>
+                    </button>
+                    <p id="iris-mapa-simples-dica" class="mt-1 text-xs text-slate-600">Blocos curtos de causa → efeito, no topo do texto adaptado.</p>
+                  </div>
+                </div>
+              </fieldset>
+            {% endcall %}
+
+            {# Simulador de empatia (static/js/empatia.js): só altera a visualização na tela do professor #}
+            {% call painel("Simulador de empatia", "i-olho", "slate", "Experimente como alunos com necessidades especiais percebem este conteúdo de Física.") %}
+              <div class="flex flex-wrap items-end gap-3">
+                <div class="min-w-0 flex-1">
+                  <label for="iris-simulacao" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-600">Simular percepção do aluno</label>
+                  <select id="iris-simulacao" aria-describedby="iris-simulacao-dica"
+                          class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-sm font-medium text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                    <option value="">Nenhuma (visão padrão)</option>
+                    <option value="baixa-visao">Baixa visão (desfoque)</option>
+                    <option value="protanopia">Daltonismo · Protanopia (sem vermelho)</option>
+                    <option value="deuteranopia">Daltonismo · Deuteranopia (sem verde)</option>
+                    <option value="tritanopia">Daltonismo · Tritanopia (sem azul)</option>
+                    <option value="tdah">Sobrecarga sensorial · TDAH</option>
+                  </select>
+                  <span id="iris-simulacao-dica" class="sr-only">Simula, apenas na sua tela, como o estudante pode perceber o material. Tecla Esc encerra a simulação.</span>
+                </div>
+                <div id="iris-desfoque-grupo" hidden>
+                  <label for="iris-desfoque" class="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-600">Intensidade</label>
+                  <div class="flex h-9 items-center gap-2">
+                    <input type="range" id="iris-desfoque" min="3" max="6" step="0.5" value="4" class="h-2 w-24 cursor-pointer accent-indigo-600">
+                    <output id="iris-desfoque-valor" for="iris-desfoque" class="w-10 text-sm font-semibold tabular-nums text-slate-800">4px</output>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-2 text-xs text-slate-600" aria-hidden="true">Só altera a sua tela; o material do aluno não muda.</p>
+            {% endcall %}
+
+          </div>
+
+          <div id="iris-simulacao-aviso" role="status" hidden
+               class="iris-no-print hidden flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-5 py-2.5 text-sm text-amber-950 sm:px-6">
+            <p><strong id="iris-simulacao-nome">Simulação ativa</strong> — <span id="iris-simulacao-texto"></span></p>
+            <button type="button" id="iris-simulacao-encerrar" class="h-8 rounded-lg border border-amber-300 bg-white px-3 text-sm font-semibold text-amber-900 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">Encerrar simulação</button>
+          </div>
+
+          <div id="iris-area-simulada" class="iris-area-impressao relative p-4 sm:p-6">
+            <div id="iris-avisos" class="iris-no-print"></div>
+
+            <p class="iris-print-only" style="font: 600 11pt/1.4 Inter, sans-serif; margin: 0 0 8mm; border-bottom: 1px solid #000; padding-bottom: 3mm;">
+              Plataforma Íris · Material adaptado
+            </p>
+
+            <div id="iris-abas" class="iris-no-print mb-4 hidden">
+              <div role="tablist" aria-label="Seções do material" class="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
+                <button type="button" role="tab" id="aba-texto" aria-controls="painel-texto" aria-selected="true" tabindex="0" data-aba="texto" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Texto adaptado
+                </button>
+                <button type="button" role="tab" id="aba-quiz" aria-controls="painel-quiz" aria-selected="false" tabindex="-1" data-aba="quiz" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Quiz &amp; Desafios <span data-contador class="rounded-full bg-indigo-100 px-1.5 text-xs font-semibold text-indigo-800 empty:hidden"></span>
+                </button>
+                <button type="button" role="tab" id="aba-gabarito" aria-controls="painel-gabarito" aria-selected="false" tabindex="-1" data-aba="gabarito" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Gabarito do Professor
+                </button>
+                <button type="button" role="tab" id="aba-curiosidades" aria-controls="painel-curiosidades" aria-selected="false" tabindex="-1" data-aba="curiosidades" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Curiosidades e Mundo Real <span data-contador class="rounded-full bg-indigo-100 px-1.5 text-xs font-semibold text-indigo-800 empty:hidden"></span>
+                </button>
+                <button type="button" role="tab" id="aba-experimento" aria-controls="painel-experimento" aria-selected="false" tabindex="-1" data-aba="experimento" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Experimento sensorial
+                </button>
+                <button type="button" role="tab" id="aba-mapa" aria-controls="painel-mapa" aria-selected="false" tabindex="-1" data-aba="mapa" class="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-selected:bg-white aria-selected:text-slate-900 aria-selected:shadow-sm">
+                  Mapa conceitual
+                </button>
+              </div>
+            </div>
+
+            <div role="tabpanel" id="painel-texto" aria-labelledby="aba-texto">
+            <article id="iris-leitor" class="iris-leitor" aria-labelledby="iris-titulo" aria-busy="false"
+                     data-tema="padrao" data-tipografia="padrao">
+              <div class="iris-vazio">
+                <div>
+                  <svg aria-hidden="true" focusable="false"><use href="#i-livro"></use></svg>
+                  <h3 id="iris-titulo" class="iris-titulo" tabindex="-1">Nenhum material adaptado ainda</h3>
+                  <p>Escolha um perfil de acessibilidade, cole o conteúdo e clique em “Adaptar conteúdo”. As ferramentas acima já podem ser ajustadas.</p>
+                </div>
+              </div>
+            </article>
+            </div>
+            {# Painéis de consolidação: mesmo tema de leitura (fonte, contraste, tipografia) do texto. #}
+            <div role="tabpanel" id="painel-quiz" aria-labelledby="aba-quiz" class="iris-no-print" hidden>
+              <article id="iris-leitor-quiz" class="iris-leitor" aria-labelledby="titulo-quiz" data-tema="padrao" data-tipografia="padrao"></article>
+            </div>
+            <div role="tabpanel" id="painel-gabarito" aria-labelledby="aba-gabarito" class="iris-no-print" hidden>
+              <article id="iris-leitor-gabarito" class="iris-leitor" aria-labelledby="titulo-gabarito" data-tema="padrao" data-tipografia="padrao"></article>
+            </div>
+            <div role="tabpanel" id="painel-curiosidades" aria-labelledby="aba-curiosidades" class="iris-no-print" hidden>
+              <article id="iris-leitor-curiosidades" class="iris-leitor" aria-labelledby="titulo-curiosidades" data-tema="padrao" data-tipografia="padrao"></article>
+            </div>
+            <div role="tabpanel" id="painel-experimento" aria-labelledby="aba-experimento" class="iris-no-print" hidden>
+              <article id="iris-leitor-experimento" class="iris-leitor" aria-labelledby="titulo-experimento" data-tema="padrao" data-tipografia="padrao"></article>
+            </div>
+            {# Mermaid.js (CDN) é importado sob demanda pelo inclusao.js, só quando há um mapa para desenhar. #}
+            <div role="tabpanel" id="painel-mapa" aria-labelledby="aba-mapa" class="iris-no-print" hidden
+                 data-mermaid-src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs">
+              <article id="iris-leitor-mapa" class="iris-leitor" aria-labelledby="titulo-mapa" data-tema="padrao" data-tipografia="padrao"></article>
+            </div>
+
+            <details id="iris-notas" hidden open class="iris-no-print group mt-5 rounded-xl border border-slate-200 bg-slate-50">
+              <summary class="flex cursor-pointer list-none items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                Orientações para o Mediador/Professor
+                <svg class="h-4 w-4 text-slate-500 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </summary>
+              <div class="px-4 pb-4 text-sm leading-relaxed text-slate-700">
+                <div id="iris-guia" class="space-y-3"></div>
+                <p id="iris-notas-rotulo" class="mt-4 font-semibold text-slate-900" hidden>Observações</p>
+                <ul id="iris-notas-lista" class="mt-1 list-disc space-y-1 pl-5"></ul>
+                <p id="iris-notas-meta" class="mt-3 text-xs text-slate-600"></p>
+              </div>
+            </details>
+
+            <form id="iris-avaliacao" hidden novalidate class="iris-no-print mt-5" aria-labelledby="avaliacao-titulo">
+              <div class="rounded-xl border border-slate-200 p-4">
+                <p id="avaliacao-titulo" class="text-sm font-semibold text-slate-900">Avalie esta adaptação</p>
+                <p class="text-xs text-slate-600">Resposta anônima, usada para aprimorar a Plataforma Íris.</p>
+                <div class="mt-3 flex flex-wrap items-end gap-x-8 gap-y-4">
+                  <fieldset>
+                    <legend class="text-sm text-slate-800">Esta adaptação foi útil?</legend>
+                    <div class="mt-1 flex gap-0.5">
+                      {% for n in range(1, 6) %}
+                      <label class="iris-estrela cursor-pointer" data-estrela="{{ n }}" data-ativa="false">
+                        <input type="radio" name="nota" value="{{ n }}" class="peer sr-only">
+                        <span class="grid h-10 w-10 place-items-center rounded-lg peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500">
+                          <svg class="h-7 w-7" aria-hidden="true" focusable="false"><use href="#i-estrela"></use></svg>
+                        </span>
+                        <span class="sr-only">{{ n }} de 5 estrelas</span>
+                      </label>
+                      {% endfor %}
+                    </div>
+                  </fieldset>
+                  <div>
+                    <label for="avaliacao-minutos" class="text-sm text-slate-800">Quanto tempo levaria para fazer manualmente?</label>
+                    <div class="relative mt-1 w-36">
+                      <input id="avaliacao-minutos" name="minutos" type="number" inputmode="numeric" min="0" max="1440" step="1" placeholder="ex.: 30"
+                             class="block h-10 w-full rounded-lg border border-slate-300 bg-white pl-3 pr-12 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                      <span class="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-sm text-slate-600" aria-hidden="true">min</span>
+                    </div>
+                  </div>
+                  <button type="submit" id="avaliacao-enviar"
+                          class="h-10 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Enviar avaliação</button>
+                </div>
+                <p id="avaliacao-status" role="status" class="mt-2 min-h-[1.25rem] text-sm font-medium text-emerald-800"></p>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  {# Botão flutuante do VLibras (o widget oficial é carregado sob demanda) #}
+  <button type="button" id="iris-vlibras" aria-pressed="false"
+          aria-label="Libras: tradução automática com VLibras"
+          class="iris-no-print fixed bottom-5 right-5 z-40 inline-flex h-14 items-center gap-2 rounded-full bg-indigo-700 pl-4 pr-5 text-[15px] font-semibold text-white shadow-lg shadow-indigo-900/20 transition hover:bg-indigo-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 aria-pressed:bg-emerald-700 aria-pressed:hover:bg-emerald-800">
+    {{ icone("i-mao", "h-6 w-6") }}
+    <span>Libras</span>
+    <span id="iris-vlibras-estado" class="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium" aria-hidden="true">Desligado</span>
+  </button>
+
+  {# ===================== Modal de exportação para impressão ===================== #}
+  {%- set classe_campo_modal = "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" -%}
+  <dialog id="iris-exportar" aria-labelledby="exportar-titulo" aria-describedby="exportar-descricao"
+          class="iris-no-print w-[min(100%-2rem,44rem)] rounded-2xl p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+    <form id="iris-exportar-form" novalidate class="flex max-h-[min(90vh,52rem)] flex-col">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div>
+          <h2 id="exportar-titulo" class="text-lg font-semibold text-slate-900">Exportar prova ou atividade</h2>
+          <p id="exportar-descricao" class="mt-0.5 text-sm text-slate-600">Gera uma folha limpa, só com o cabeçalho escolar e o conteúdo adaptado.</p>
+        </div>
+        <button type="button" data-fechar-dialogo aria-label="Fechar"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-6 overflow-y-auto px-6 py-5">
+        <fieldset>
+          <legend class="text-sm font-semibold text-slate-900">Cabeçalho escolar</legend>
+          <p class="mt-0.5 text-xs text-slate-600">Na impressão, o nome do aluno fica só no seu navegador. No Word, ele é enviado apenas para montar o arquivo e não é salvo.</p>
+          <div class="mt-3 grid gap-3 sm:grid-cols-6">
+            <div class="sm:col-span-6">
+              <label for="exp-escola" class="text-sm font-medium text-slate-800">Nome da escola</label>
+              <input id="exp-escola" name="escola" type="text" autocomplete="organization" class="{{ classe_campo_modal }}">
+            </div>
+            <div class="sm:col-span-6">
+              <label for="exp-aluno" class="text-sm font-medium text-slate-800">Nome do aluno(a)</label>
+              <input id="exp-aluno" name="aluno" type="text" autocomplete="off" autofocus
+                     placeholder="Opcional: em branco, fica uma linha para preencher à mão" class="{{ classe_campo_modal }}">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="exp-turma" class="text-sm font-medium text-slate-800">Turma</label>
+              <input id="exp-turma" name="turma" type="text" autocomplete="off" class="{{ classe_campo_modal }}">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="exp-data" class="text-sm font-medium text-slate-800">Data</label>
+              <input id="exp-data" name="data" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" autocomplete="off" class="{{ classe_campo_modal }}">
+            </div>
+            <div class="sm:col-span-2">
+              <label for="exp-disciplina" class="text-sm font-medium text-slate-800">Disciplina</label>
+              <input id="exp-disciplina" name="disciplina" type="text" value="Física" autocomplete="off" class="{{ classe_campo_modal }}">
+            </div>
+            <div class="sm:col-span-6">
+              <label for="exp-professor" class="text-sm font-medium text-slate-800">Professor(a)</label>
+              <input id="exp-professor" name="professor" type="text" autocomplete="off" class="{{ classe_campo_modal }}">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="text-sm font-semibold text-slate-900">Acessibilidade da impressão</legend>
+          <div class="mt-3 grid gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="exp-fonte" class="text-sm font-medium text-slate-800">Tamanho da fonte na folha</label>
+              <div class="mt-1 flex flex-wrap items-center gap-2">
+                <div class="relative">
+                  <input id="exp-fonte" name="fonte_pt" type="number" inputmode="numeric" min="12" max="60" step="1" value="14"
+                         aria-describedby="exp-fonte-dica exp-erro-fonte"
+                         class="block h-10 w-24 rounded-lg border border-slate-300 bg-white pl-3 pr-9 text-sm font-semibold tabular-nums text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+                  <span class="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-sm text-slate-500" aria-hidden="true">pt</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5" role="group" aria-label="Tamanhos rápidos">
+                  {% for tamanho in [14, 18, 24, 28, 36] %}
+                  <button type="button" data-exp-fonte="{{ tamanho }}" aria-pressed="false"
+                          class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-pressed:border-indigo-600 aria-pressed:bg-indigo-600 aria-pressed:text-white">{{ tamanho }} pt</button>
+                  {% endfor %}
+                </div>
+              </div>
+              <p id="exp-fonte-dica" class="mt-1 text-xs text-slate-600">De 12 a 60 pt. Para baixa visão, costuma-se usar de 24 a 36 pt.</p>
+              <p id="exp-erro-fonte" class="mt-1 hidden text-sm font-medium text-rose-700" data-exp-erro="preferencias.fonte_pt"></p>
+            </div>
+
+            <fieldset class="sm:col-span-2">
+              <legend class="text-sm font-medium text-slate-800">Contraste</legend>
+              <div class="mt-1 grid gap-2 sm:grid-cols-2">
+                <label class="block cursor-pointer">
+                  <input type="radio" name="contraste" value="pb-alto" class="peer sr-only" checked>
+                  <span class="block rounded-xl border border-slate-200 p-3 text-sm peer-checked:border-indigo-600 peer-checked:ring-1 peer-checked:ring-indigo-600 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2">
+                    <span class="block font-semibold text-slate-900">Alto contraste P&amp;B</span>
+                    <span class="block text-slate-600">Preto puro, bordas grossas, sem depender de cor de fundo.</span>
+                  </span>
+                </label>
+                <label class="block cursor-pointer">
+                  <input type="radio" name="contraste" value="padrao" class="peer sr-only">
+                  <span class="block rounded-xl border border-slate-200 p-3 text-sm peer-checked:border-indigo-600 peer-checked:ring-1 peer-checked:ring-indigo-600 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2">
+                    <span class="block font-semibold text-slate-900">Padrão</span>
+                    <span class="block text-slate-600">Tons de cinza suaves, destaques com fundo.</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div>
+              <label for="exp-tipografia" class="text-sm font-medium text-slate-800">Tipografia</label>
+              <select id="exp-tipografia" name="tipografia" class="{{ classe_campo_modal }}">
+                <option value="padrao">Inter (padrão)</option>
+                <option value="atkinson">Atkinson Hyperlegible</option>
+                <option value="dyslexic">OpenDyslexic</option>
+              </select>
+            </div>
+            <div>
+              <label for="exp-entrelinhas" class="text-sm font-medium text-slate-800">Entrelinhas</label>
+              <select id="exp-entrelinhas" name="entrelinhas" class="{{ classe_campo_modal }}">
+                <option value="1.5">Normal (1,5)</option>
+                <option value="1.8">Ampliado (1,8)</option>
+                <option value="2.0">Máximo (2,0)</option>
+              </select>
+            </div>
+            <div>
+              <label for="exp-colunas" class="text-sm font-medium text-slate-800">Layout</label>
+              <select id="exp-colunas" name="colunas" aria-describedby="exp-colunas-dica" class="{{ classe_campo_modal }}">
+                <option value="1">Coluna única</option>
+                <option value="2">Duas colunas</option>
+              </select>
+              <p id="exp-colunas-dica" class="mt-1 text-xs text-slate-600">Duas colunas só até 16 pt.</p>
+            </div>
+            <div>
+              <label for="exp-linhas" class="text-sm font-medium text-slate-800">Linhas para resposta</label>
+              <input id="exp-linhas" name="linhas_resposta" type="number" inputmode="numeric" min="0" max="30" step="1" value="0" class="{{ classe_campo_modal }}">
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="text-sm font-semibold text-slate-900">Incluir na folha</legend>
+          <div id="exp-blocos" class="mt-2 grid gap-x-4 gap-y-2 sm:grid-cols-2"></div>
+          <label id="exp-guia-opcao" class="mt-3 flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800">
+            <input type="checkbox" name="incluir_guia" value="1" class="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-indigo-600">
+            <span>
+              Incluir as <strong>Orientações para o Mediador/Professor</strong> em página separada
+              <span class="block text-xs text-slate-600">Página para o professor: não entregue ao estudante.</span>
+            </span>
+          </label>
+        </fieldset>
+
+        <div id="exp-erro-geral" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900" role="alert"></div>
+        <div id="exp-sucesso" class="hidden rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900" role="status">
+          <p class="font-semibold" id="exp-sucesso-titulo">Versão para impressão pronta.</p>
+          <p class="mt-1" id="exp-sucesso-link">Se a nova aba não abriu, <a id="exp-link" href="#" target="_blank" rel="noopener" class="font-semibold underline">abra a versão para impressão</a>.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/80 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <button type="button" id="exp-rapida"
+                class="inline-flex h-11 items-center justify-center rounded-xl px-3 text-sm font-medium text-slate-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          Impressão rápida desta tela
+        </button>
+        <div class="flex flex-col-reverse gap-2 sm:flex-row">
+          <button type="button" data-fechar-dialogo
+                  class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            Cancelar
+          </button>
+          <button type="button" id="exp-docx"
+                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 text-sm font-semibold text-indigo-800 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+            <span id="exp-docx-rotulo">Baixar Word (.docx)</span>
+          </button>
+          <button type="button" id="exp-braille" aria-describedby="exp-braille-dica"
+                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-violet-900 hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="5" r="2"/><circle cx="16" cy="5" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="8" cy="19" r="2"/><circle cx="16" cy="19" r="2"/></svg>
+            <span id="exp-braille-rotulo">Baixar em Formato Braille (.BRF)</span>
+          </button>
+          <span id="exp-braille-dica" class="sr-only">Arquivo em braille integral (grau 1), 40 celas por linha e 25 linhas por página, para impressora braille ou linha braille. Recomenda-se a revisão de um transcritor do AEE.</span>
+          <button type="submit" id="exp-gerar"
+                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-80">
+            {{ icone("i-impressora", "h-4 w-4") }} <span id="exp-gerar-rotulo">Impressão / PDF</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="iris-historico-dialogo" aria-labelledby="historico-titulo"
+          class="iris-no-print w-[min(100%-2rem,40rem)] rounded-2xl p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+    <div class="flex max-h-[min(85vh,48rem)] flex-col">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div>
+          <h2 id="historico-titulo" class="text-lg font-semibold text-slate-900">Meus materiais</h2>
+          <p class="mt-0.5 text-sm text-slate-600">Provas e atividades que você exportou (ficam disponíveis por 30 dias).</p>
+        </div>
+        <button type="button" data-fechar-historico aria-label="Fechar"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <ul id="iris-historico-lista" class="space-y-2 overflow-y-auto px-6 py-5"></ul>
+      <p id="historico-status" role="status" class="border-t border-slate-100 px-6 py-3 text-sm text-slate-700"></p>
+    </div>
+  </dialog>
+
+  <dialog id="iris-alunos" aria-labelledby="alunos-titulo"
+          class="iris-no-print w-[min(100%-2rem,56rem)] rounded-2xl p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+    <div class="flex max-h-[min(90vh,56rem)] flex-col">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div>
+          <h2 id="alunos-titulo" class="text-lg font-semibold text-slate-900">Alunos e preferências</h2>
+          <p class="mt-0.5 text-sm text-slate-600">Perfis reutilizáveis para adaptar e imprimir com um clique.</p>
+        </div>
+        <button type="button" data-fechar-alunos aria-label="Fechar"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="grid gap-6 overflow-y-auto px-6 py-5 md:grid-cols-2">
+        <div class="min-w-0">
+          <div class="flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            {{ icone("i-alerta", "mt-0.5 h-5 w-5 shrink-0") }}
+            <p><strong>Dados sensíveis (LGPD, art. 11 e 14).</strong> Prefira iniciais ou um código no lugar do nome. Estes dados ficam só no servidor da plataforma e nunca são enviados à IA.</p>
+          </div>
+          <h3 class="mt-5 text-sm font-semibold text-slate-900">Cadastrados</h3>
+          <ul id="iris-alunos-lista" class="mt-2 space-y-2"></ul>
+        </div>
+
+        <form id="iris-aluno-form" novalidate class="min-w-0 space-y-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <h3 id="aluno-form-titulo" class="text-sm font-semibold text-slate-900">Novo aluno</h3>
+          <input type="hidden" name="id">
+          <div>
+            <label for="aluno-nome" class="text-sm font-medium text-slate-800">Nome, iniciais ou código <span aria-hidden="true" class="text-rose-600">*</span></label>
+            <input id="aluno-nome" name="nome_aluno" type="text" maxlength="120" autocomplete="off" aria-describedby="aluno-erro-nome" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+            <p id="aluno-erro-nome" class="mt-1 hidden text-sm font-medium text-rose-700" data-aluno-erro="nome_aluno"></p>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="aluno-turma" class="text-sm font-medium text-slate-800">Turma</label>
+              <input id="aluno-turma" name="turma" type="text" maxlength="40" autocomplete="off" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+            </div>
+            <div>
+              <label for="aluno-fonte" class="text-sm font-medium text-slate-800">Fonte preferida (pt)</label>
+              <input id="aluno-fonte" name="tamanho_fonte_pref" type="number" min="12" max="60" step="1" value="14" aria-describedby="aluno-erro-fonte" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+              <p id="aluno-erro-fonte" class="mt-1 hidden text-sm font-medium text-rose-700" data-aluno-erro="tamanho_fonte_pref"></p>
+            </div>
+          </div>
+          <div>
+            <label for="aluno-perfil" class="text-sm font-medium text-slate-800">Perfil de acessibilidade</label>
+            <select id="aluno-perfil" name="perfil_acessibilidade" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+              {% for perfil in perfis %}<option value="{{ perfil.codigo }}">{{ perfil.nome }}</option>{% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="aluno-contraste" class="text-sm font-medium text-slate-800">Contraste preferido</label>
+            <select id="aluno-contraste" name="contraste_pref" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+              <option value="padrao">Padrão</option>
+              <option value="alto-escuro">Preto e amarelo</option>
+              <option value="alto-azul">Azul</option>
+              <option value="sepia">Sépia</option>
+            </select>
+          </div>
+          <div>
+            <label for="aluno-obs" class="text-sm font-medium text-slate-800">Observações pedagógicas</label>
+            <textarea id="aluno-obs" name="observacoes_pedagogicas" rows="3" maxlength="2000" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      placeholder="Ex.: prefere exemplos do cotidiano; usa lupa manual."></textarea>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="submit" id="aluno-salvar"
+                    class="h-10 rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Adicionar aluno</button>
+            <button type="button" id="aluno-cancelar-edicao" hidden
+                    class="h-10 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Cancelar edição</button>
+          </div>
+        </form>
+      </div>
+      <p id="aluno-status" role="status" class="border-t border-slate-100 px-6 py-3 text-sm text-slate-700"></p>
+    </div>
+  </dialog>
+
+  {# ===================== Histórico e Trajetória AEE (static/js/aee_analytics.js) ===================== #}
+  <dialog id="iris-aee" aria-labelledby="aee-titulo" aria-describedby="aee-descricao"
+          class="iris-no-print w-[min(100%-2rem,60rem)] rounded-2xl p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+    <div class="flex max-h-[min(92vh,60rem)] flex-col">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div>
+          <h2 id="aee-titulo" class="text-lg font-semibold text-slate-900">Histórico e Trajetória AEE</h2>
+          <p id="aee-descricao" class="mt-0.5 text-sm text-slate-600">Quais recursos de acessibilidade são mais acionados com os seus materiais — base para o PEI (Plano de Ensino Individualizado).</p>
+        </div>
+        <button type="button" data-fechar-aee aria-label="Fechar"
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="flex flex-wrap items-end gap-3 border-b border-slate-100 bg-slate-50/70 px-6 py-3">
+        <div>
+          <label for="aee-dias" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Período</label>
+          <select id="aee-dias" class="mt-1 block h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="90" selected>Últimos 90 dias</option>
+            <option value="365">Último ano</option>
+          </select>
+        </div>
+        <div>
+          <label for="aee-perfil" class="text-xs font-semibold uppercase tracking-wider text-slate-600">Perfil do material</label>
+          <select id="aee-perfil" class="mt-1 block h-9 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">
+            <option value="">Todos os perfis</option>
+            {% for perfil in perfis %}<option value="{{ perfil.codigo }}">{{ perfil.nome }}</option>{% endfor %}
+            <option value="IMAGEM_EQUACAO">Imagem ou equação</option>
+          </select>
+        </div>
+        {% if current_user.pesquisador %}
+        <label class="flex h-9 items-center gap-2 text-sm text-slate-800">
+          <input type="checkbox" id="aee-escopo" class="h-4 w-4 rounded border-slate-300 accent-indigo-600"> Todos os professores (pesquisa)
+        </label>
+        {% endif %}
+      </div>
+      <div id="aee-conteudo" class="space-y-4 overflow-y-auto px-6 py-5" aria-busy="false"></div>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-6 py-3">
+        <p id="aee-status" role="status" class="text-sm text-slate-700"></p>
+        <p class="text-xs text-slate-500">Dados anônimos: sem nome de aluno, sem texto, só o recurso usado e o perfil do material.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="iris-no-print border-t border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-600 sm:flex-row sm:px-6 lg:px-8">
+      <div class="flex items-center gap-3">
+        <img src="{{ url_for('static', filename='img/logo-web.png') }}" alt="Plataforma Íris" width="353" height="144" class="h-9 w-auto">
+        <span class="hidden sm:inline">Inteligência Artificial &amp; Acessibilidade Educacional</span>
+      </div>
+      <p>Dados tratados conforme a LGPD</p>
+    </div>
+  </footer>
+
+  <template id="iris-tpl-carregando">
+    <div class="space-y-4" aria-hidden="true">
+      <span class="iris-skeleton" style="width: 30%; height: .8em"></span>
+      <span class="iris-skeleton" style="width: 70%; height: 1.6em"></span>
+      <span class="iris-skeleton" style="width: 100%; height: 3.5em; border-radius: .75em"></span>
+      <span class="iris-skeleton" style="width: 92%"></span>
+      <span class="iris-skeleton" style="width: 96%"></span>
+      <span class="iris-skeleton" style="width: 80%"></span>
+      <span class="iris-skeleton" style="width: 88%"></span>
+    </div>
+    <h3 id="iris-titulo" class="iris-titulo sr-only" tabindex="-1">Adaptando conteúdo…</h3>
+  </template>
+  <script src="{{ url_for('static', filename='js/iris-voz.js') }}" defer
+          data-endpoint="{{ url_for('inclusao.perguntar_voz') }}" data-conteudo="#conteudo-principal"></script>
+</body>
+</html>

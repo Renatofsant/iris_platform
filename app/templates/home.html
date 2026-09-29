@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plataforma Íris · Inteligência Artificial & Acessibilidade Educacional</title>
+  <meta name="description" content="Plataforma Íris: inteligência artificial para adaptar conteúdos de Física a estudantes com TEA, TDAH, baixa visão, surdez e cegueira.">
+{% include "_favicon.html" %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  {# Tailwind Play CDN, como nas demais páginas. Em produção, gere um CSS com a CLI do Tailwind. #}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } },
+    };
+  </script>
+  <style>
+    .iris-grade {
+      background-image:
+        linear-gradient(to right, rgb(99 102 241 / .07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(99 102 241 / .07) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+    }
+    .iris-texto-gradiente {
+      background: linear-gradient(100deg, #4f46e5 10%, #0891b2 55%, #059669 90%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .iris-flutuar { animation: iris-flutuar 7s ease-in-out infinite; }
+      @keyframes iris-flutuar { 50% { transform: translateY(-8px); } }
+    }
+  </style>
+  <script src="{{ url_for('static', filename='js/pwa.js') }}" defer></script>
+</head>
+
+{%- macro icone(id, classes="h-5 w-5") -%}
+  <svg class="{{ classes }}" aria-hidden="true" focusable="false"><use href="#{{ id }}"></use></svg>
+{%- endmacro -%}
+
+{% set recursos = [
+  ("i-camadas", "indigo", "Adaptação Dinâmica",
+   "Cole um texto de Física e receba uma versão adaptada ao perfil do estudante, preservando o rigor científico: grandezas, unidades e relações matemáticas."),
+  ("i-grade", "esmeralda", "Desenho Universal (DUA)",
+   "Múltiplos meios de representação, ação e engajamento: hierarquia clara, glossários, passos numerados e checklists nascem juntos, no mesmo material."),
+  ("i-ondas", "ceu", "Multimodalidade",
+   "Texto ampliável, contraste alto, fonte para dislexia, leitura em voz alta, audiodescrição de equações e gráficos e exportação para Word e impressão."),
+  ("i-mao", "lilas", "VLibras integrado",
+   "Tradução automática para a Língua Brasileira de Sinais com o widget oficial do Governo Federal, a um clique, sobre todo o material adaptado."),
+  ("i-alvo", "ambar", "Quizzes Imersivos",
+   "Questões com concepções alternativas reais como distratores, retorno imediato e encorajador, gabarito comentado e curiosidades do dia a dia."),
+  ("i-bussola", "rosa", "Guia do Mediador",
+   "Orientações para o professor e o profissional de apoio: nível de complexidade, ajustes feitos, sugestões de mediação e pontos de atenção."),
+  ("i-frasco", "menta", "Experimentos de Baixo Custo",
+   "Roteiros práticos com garrafa PET, barbante e massinha, pensados para o tato e a audição — o fenômeno percebido por todos os sentidos."),
+  ("i-rede", "cobalto", "Mapas Conceituais",
+   "Mapas mentais gerados automaticamente para cada conteúdo, com descrição textual equivalente para leitores de tela."),
+] %}
+
+{# Cada cor: (fundo do card, borda, bloco do ícone, sombra ao passar o mouse) #}
+{% set cores = {
+  "indigo": ("from-indigo-50 via-indigo-50 to-violet-100", "border-indigo-200 hover:border-indigo-400", "from-indigo-600 to-violet-600 shadow-indigo-500/30", "hover:shadow-indigo-200/80"),
+  "esmeralda": ("from-emerald-50 via-emerald-50 to-green-100", "border-emerald-200 hover:border-emerald-400", "from-emerald-600 to-green-700 shadow-emerald-500/30", "hover:shadow-emerald-200/80"),
+  "ceu": ("from-sky-50 via-sky-50 to-blue-100", "border-sky-200 hover:border-sky-400", "from-sky-600 to-blue-600 shadow-sky-500/30", "hover:shadow-sky-200/80"),
+  "lilas": ("from-purple-50 via-purple-50 to-fuchsia-100", "border-purple-200 hover:border-purple-400", "from-purple-600 to-fuchsia-600 shadow-purple-500/30", "hover:shadow-purple-200/80"),
+  "ambar": ("from-amber-50 via-amber-50 to-orange-100", "border-amber-300 hover:border-amber-500", "from-amber-600 to-orange-600 shadow-amber-500/30", "hover:shadow-amber-200/80"),
+  "rosa": ("from-rose-50 via-rose-50 to-red-100", "border-rose-200 hover:border-rose-400", "from-rose-600 to-red-700 shadow-rose-500/30", "hover:shadow-rose-200/80"),
+  "menta": ("from-teal-50 via-teal-50 to-cyan-100", "border-teal-200 hover:border-teal-400", "from-teal-600 to-cyan-700 shadow-teal-500/30", "hover:shadow-teal-200/80"),
+  "cobalto": ("from-blue-50 via-blue-100 to-indigo-100", "border-blue-300 hover:border-blue-500", "from-blue-700 to-indigo-800 shadow-blue-600/30", "hover:shadow-blue-200/80"),
+} %}
+
+{% set perfis = [
+  ("TEA", "Transtorno do Espectro Autista"),
+  ("TDAH", "Déficit de Atenção e Hiperatividade"),
+  ("Baixa visão", "Ampliação e alto contraste"),
+  ("Surdez", "Português em ordem direta e Libras"),
+  ("Cegueira", "Audiodescrição e leitor de tela"),
+] %}
+
+<body class="bg-white font-sans text-slate-800 antialiased">
+  {# Sprite de ícones (Lucide, licença ISC) #}
+  <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+    <defs>
+      <symbol id="i-olho" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-camadas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+      <symbol id="i-grade" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+      <symbol id="i-ondas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3"/></symbol>
+      <symbol id="i-mao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+      <symbol id="i-alvo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+      <symbol id="i-bussola" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></symbol>
+      <symbol id="i-frasco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7M7 16h10"/></symbol>
+      <symbol id="i-rede" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3M12 12V8"/></symbol>
+      <symbol id="i-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-escudo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+    </defs>
+  </svg>
+
+  <a href="#conteudo"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-indigo-700 focus:px-4 focus:py-3 focus:text-white focus:shadow-lg">
+    Pular para o conteúdo principal
+  </a>
+
+  {# ============================ Navegação ============================ #}
+  <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-lg">
+    <nav aria-label="Principal" class="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <a href="{{ url_for('auth.home') }}" class="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+        <img src="{{ url_for('static', filename='img/logo-web.png') }}" alt="Plataforma Íris — página inicial"
+             width="353" height="144" class="h-11 w-auto sm:h-12">
+      </a>
+      <ul class="hidden items-center gap-1 text-sm font-medium text-slate-700 md:flex">
+        <li><a href="#recursos" class="rounded-lg px-3 py-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Recursos</a></li>
+        <li><a href="#como-funciona" class="rounded-lg px-3 py-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Como funciona</a></li>
+        <li><a href="#fundamentacao" class="rounded-lg px-3 py-2 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">Fundamentação</a></li>
+      </ul>
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('auth.login') }}" class="hidden h-10 items-center rounded-lg px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:inline-flex">Entrar</a>
+        <a href="{{ url_for('auth.register') }}" class="inline-flex h-10 items-center rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Criar conta</a>
+      </div>
+    </nav>
+  </header>
+
+  {% if saiu %}
+  <div role="status" class="border-b border-emerald-200 bg-emerald-50">
+    <p class="mx-auto max-w-7xl px-4 py-2.5 text-center text-sm font-medium text-emerald-900 sm:px-6 lg:px-8">
+      Você saiu da plataforma com segurança. Até a próxima aula!
+    </p>
+  </div>
+  {% endif %}
+
+  <main id="conteudo" tabindex="-1" class="focus:outline-none">
+
+    {# ============================ Hero ============================ #}
+    <section aria-labelledby="hero-titulo" class="relative overflow-hidden">
+      <div class="iris-grade pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute -top-40 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-200/60 via-cyan-100/50 to-emerald-200/60 blur-3xl" aria-hidden="true"></div>
+
+      <div class="relative mx-auto grid max-w-7xl items-center gap-14 px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:grid-cols-12 lg:px-8">
+        <div class="lg:col-span-7">
+          <p class="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 px-3 py-1 text-xs font-semibold text-indigo-800 shadow-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
+            Inteligência Artificial &amp; Acessibilidade Educacional
+          </p>
+          <h1 id="hero-titulo" class="mt-6 text-4xl font-bold leading-[1.15] tracking-tight text-slate-900 md:text-5xl md:leading-[1.12]">
+            Plataforma Íris:
+            <span class="iris-texto-gradiente">Inteligência Artificial &amp; Acessibilidade</span>
+            no Ensino de Ciências
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+            Adapte conteúdos de Física em segundos para estudantes atípicos — com
+            <strong class="font-semibold text-slate-900">TEA, TDAH, baixa visão, surdez e cegueira</strong> —
+            sem perder o rigor científico. Cada material chega com quiz, experimento sensorial,
+            mapa conceitual e orientações para quem faz a mediação.
+          </p>
+          <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+            <a href="{{ url_for('auth.login') }}" class="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-base font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+              Acessar Plataforma
+              {{ icone("i-seta", "h-4 w-4 transition group-hover:translate-x-0.5") }}
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="inline-flex h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-base font-semibold text-slate-800 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+              Criar Conta de Professor
+            </a>
+          </div>
+          {% if convite_exigido %}
+          <p class="mt-3 text-sm text-slate-600">O cadastro de professores exige um código de convite da equipe do projeto.</p>
+          {% endif %}
+
+          <ul class="mt-10 flex flex-wrap gap-2" aria-label="Perfis de acessibilidade atendidos">
+            {% for sigla, descricao in perfis %}
+            <li class="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-sm text-slate-700 shadow-sm">
+              <span class="font-semibold text-slate-900">{{ sigla }}</span>
+              <span class="sr-only">: {{ descricao }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        {# Prévia ilustrativa de uma adaptação #}
+        <div class="lg:col-span-5" aria-hidden="true">
+          <div class="iris-flutuar relative mx-auto max-w-md">
+            <div class="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-indigo-500/15 to-emerald-500/15 blur-xl"></div>
+            <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
+              <div class="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                <span class="h-2.5 w-2.5 rounded-full bg-rose-300"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-amber-300"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+                <span class="ml-3 rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200">Perfil: TEA · suporte 1–2</span>
+              </div>
+              <div class="space-y-4 p-6 pb-12">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-indigo-700">Física · 1ª Lei de Newton</p>
+                <p class="text-xl font-bold text-slate-900">Inércia</p>
+                <p class="rounded-xl bg-indigo-50 p-3 text-sm text-indigo-950">Você vai estudar a inércia. O conteúdo tem 3 passos.</p>
+                <ol class="space-y-2.5 text-sm text-slate-700">
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">1</span>Um objeto parado continua parado.</li>
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">2</span>Um objeto em movimento continua em movimento.</li>
+                  <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-200 text-xs font-bold text-slate-600">3</span><span class="text-slate-400">Uma força muda esse estado.</span></li>
+                </ol>
+                <div class="grid grid-cols-3 gap-2 pt-2 text-center text-[11px] font-medium">
+                  <span class="rounded-lg bg-amber-50 py-2 text-amber-800">Quiz · 4</span>
+                  <span class="rounded-lg bg-teal-50 py-2 text-teal-800">Experimento</span>
+                  <span class="rounded-lg bg-sky-50 py-2 text-sky-800">Mapa mental</span>
+                </div>
+              </div>
+            </div>
+            <div class="absolute -bottom-5 -left-6 hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-xl sm:flex">
+              <span class="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-emerald-700">{{ icone("i-check", "h-4 w-4") }}</span>
+              <span class="leading-tight"><span class="block font-semibold text-slate-900">Rigor científico</span><span class="text-xs text-slate-500">unidades e relações preservadas</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ============================ Recursos ============================ #}
+    <section id="recursos" aria-labelledby="recursos-titulo" class="scroll-mt-16 border-t border-slate-100 bg-slate-50/70 py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+          <p class="text-sm font-semibold uppercase tracking-wider text-indigo-700">Recursos</p>
+          <h2 id="recursos-titulo" class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Um material, muitos caminhos de acesso</h2>
+          <p class="mt-4 text-lg text-slate-600">Tudo o que o professor precisa para incluir de verdade, no mesmo fluxo de trabalho.</p>
+        </div>
+
+        <ul class="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {% for id_icone, cor, titulo, texto in recursos %}
+          {% set fundo, borda, bloco, sombra = cores[cor] %}
+          <li class="group relative overflow-hidden rounded-2xl border-2 bg-gradient-to-br p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl motion-reduce:transform-none {{ fundo }} {{ borda }} {{ sombra }}">
+            <span class="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/50 blur-xl" aria-hidden="true"></span>
+            <span class="relative grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br text-white shadow-lg {{ bloco }}">{{ icone(id_icone, "h-6 w-6") }}</span>
+            <h3 class="relative mt-5 text-base font-bold text-slate-900">{{ titulo }}</h3>
+            <p class="relative mt-2 text-sm leading-relaxed text-slate-700">{{ texto }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    {# ============================ Como funciona ============================ #}
+    <section id="como-funciona" aria-labelledby="como-titulo" class="scroll-mt-16 py-24">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <p class="text-sm font-semibold uppercase tracking-wider text-indigo-700">Como funciona</p>
+          <h2 id="como-titulo" class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Do texto da aula ao material acessível em três passos</h2>
+        </div>
+        <ol class="mt-14 grid gap-8 md:grid-cols-3">
+          {% set estilos_passo = [
+            ("from-blue-600 to-indigo-600", "border-indigo-200 from-indigo-50 shadow-indigo-200/60", "from-blue-500 to-indigo-600"),
+            ("from-emerald-500 to-green-600", "border-emerald-200 from-emerald-50 shadow-emerald-200/60", "from-emerald-400 to-green-600"),
+            ("from-violet-600 to-fuchsia-600", "border-violet-200 from-violet-50 shadow-violet-200/60", "from-violet-500 to-fuchsia-600"),
+          ] %}
+          {% for titulo, texto in [
+            ("Cole ou importe o conteúdo", "Texto de Física do livro, da apostila ou do seu plano de aula — em TXT, PDF ou Word. Imagens de equações e gráficos também são lidas."),
+            ("Escolha o perfil do estudante", "TEA, TDAH, baixa visão, surdez ou cegueira. Vincule o aluno cadastrado para registrar as observações pedagógicas."),
+            ("Revise, ajuste e aplique", "Edite o material, imprima, exporte para Word ou projete em sala — com quiz, experimento, mapa conceitual e guia do mediador."),
+          ] %}
+          {% set numero, cartao, faixa = estilos_passo[loop.index0] %}
+          <li class="relative overflow-hidden rounded-2xl border-2 bg-gradient-to-b to-white p-7 pt-8 shadow-lg {{ cartao }}">
+            <span class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r {{ faixa }}" aria-hidden="true"></span>
+            <span class="block bg-gradient-to-br bg-clip-text text-6xl font-extrabold leading-none tracking-tight text-transparent {{ numero }}" aria-hidden="true">0{{ loop.index }}</span>
+            <h3 class="mt-4 text-lg font-bold text-slate-900"><span class="sr-only">Passo {{ loop.index }}: </span>{{ titulo }}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-slate-700">{{ texto }}</p>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </section>
+
+    {# ============================ Fundamentação teórica ============================ #}
+    <section id="fundamentacao" aria-labelledby="fundamentacao-titulo" class="scroll-mt-16 bg-slate-900 py-24 text-slate-300">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-2xl">
+          <p class="text-sm font-semibold uppercase tracking-wider text-emerald-400">Fundamentação teórica</p>
+          <h2 id="fundamentacao-titulo" class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">A tecnologia a serviço da mediação — nunca no lugar dela</h2>
+          <p class="mt-4 text-lg text-slate-400">A Íris não substitui o professor: ela amplia as possibilidades de mediação pedagógica.</p>
+        </div>
+
+        <div class="mt-14 grid gap-6 lg:grid-cols-2">
+          <article aria-labelledby="thc-titulo" class="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <p class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Vygotsky</p>
+            <h3 id="thc-titulo" class="mt-2 text-xl font-semibold text-white">Teoria Histórico-Cultural e a Zona de Desenvolvimento Proximal</h3>
+            <p class="mt-4 leading-relaxed">
+              Para Vygotsky, o desenvolvimento acontece nas relações sociais, mediado por signos e instrumentos.
+              A <strong class="text-white">ZDP</strong> é a distância entre o que o estudante já faz sozinho e o que
+              consegue fazer com a ajuda de alguém mais experiente. A deficiência não define o limite do aprender:
+              o que muda são os caminhos — e a escola deve construí-los.
+            </p>
+            <div class="mt-8 flex items-center gap-6">
+              <svg viewBox="0 0 160 160" class="h-32 w-32 shrink-0" role="img" aria-labelledby="zdp-desc">
+                <desc id="zdp-desc">Três círculos concêntricos: no centro, o que o estudante faz sozinho; no anel do meio, a zona de desenvolvimento proximal, o que faz com mediação; no anel externo, o que ainda não alcança.</desc>
+                <circle cx="80" cy="80" r="76" fill="none" stroke="rgb(148 163 184 / .35)" stroke-dasharray="4 5" stroke-width="2"/>
+                <circle cx="80" cy="80" r="54" fill="rgb(52 211 153 / .18)" stroke="rgb(52 211 153)" stroke-width="2"/>
+                <circle cx="80" cy="80" r="26" fill="rgb(129 140 248 / .9)"/>
+              </svg>
+              <ul class="space-y-2 text-sm">
+                <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-indigo-400" aria-hidden="true"></span>Faz sozinho (desenvolvimento real)</li>
+                <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-emerald-400" aria-hidden="true"></span><span><strong class="text-white">ZDP</strong>: faz com mediação</span></li>
+                <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full border border-dashed border-slate-400" aria-hidden="true"></span>Ainda não alcança</li>
+              </ul>
+            </div>
+          </article>
+
+          <article aria-labelledby="dua-titulo" class="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">CAST</p>
+            <h3 id="dua-titulo" class="mt-2 text-xl font-semibold text-white">Desenho Universal para a Aprendizagem (DUA)</h3>
+            <p class="mt-4 leading-relaxed">
+              Em vez de adaptar depois, o DUA planeja desde o início para a diversidade: barreiras estão no
+              currículo, não no estudante. A Íris gera, para cada conteúdo, alternativas que atendem aos três princípios.
+            </p>
+            <dl class="mt-8 space-y-4">
+              {% for principio, exemplo in [
+                ("Múltiplos meios de engajamento", "o porquê de aprender: curiosidades do cotidiano, quizzes com retorno imediato e experimentos."),
+                ("Múltiplos meios de representação", "o quê: texto adaptado, áudio, Libras, audiodescrição, glossário ilustrado e mapa conceitual."),
+                ("Múltiplos meios de ação e expressão", "o como: checklists, passos numerados, experimentos táteis e atividades para cada perfil."),
+              ] %}
+              <div class="flex gap-4">
+                <dt class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-400/15 text-sm font-bold text-emerald-300">{{ loop.index }}</dt>
+                <dd><span class="font-semibold text-white">{{ principio }}</span> — {{ exemplo }}</dd>
+              </div>
+              {% endfor %}
+            </dl>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    {# ============================ Chamada final ============================ #}
+    <section aria-labelledby="cta-titulo" class="py-24">
+      <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 px-8 py-16 text-center shadow-2xl shadow-slate-900/30 ring-1 ring-white/10 sm:px-16">
+          {# Brilhos discretos: um toque de índigo, sem competir com o texto #}
+          <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" aria-hidden="true"></div>
+          <div class="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-sky-500/10 blur-3xl" aria-hidden="true"></div>
+          <div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" aria-hidden="true"></div>
+          <h2 id="cta-titulo" class="relative text-3xl font-bold tracking-tight text-white sm:text-4xl">Cada estudante aprende Física do seu jeito.</h2>
+          <p class="relative mx-auto mt-4 max-w-xl text-lg text-white">Crie sua conta de professor e adapte seu primeiro conteúdo hoje.</p>
+          <div class="relative mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+            <a href="{{ url_for('auth.register') }}" class="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-7 text-base font-semibold text-slate-900 shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-50 hover:shadow-indigo-400/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              Criar Conta de Professor
+              {{ icone("i-seta", "h-4 w-4 transition group-hover:translate-x-0.5") }}
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="inline-flex h-12 items-center justify-center rounded-xl border border-white/30 px-6 text-base font-semibold text-white transition hover:border-white/60 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">Já tenho conta</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 py-10">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-4 text-sm text-slate-600 sm:flex-row sm:px-6 lg:px-8">
+      <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+        <img src="{{ url_for('static', filename='img/logo-web.png') }}" alt="Plataforma Íris" width="353" height="144" class="h-10 w-auto">
+        <p>Inteligência Artificial &amp; Acessibilidade Educacional</p>
+      </div>
+      <p class="inline-flex items-center gap-2">{{ icone("i-escudo", "h-4 w-4 text-emerald-600") }} Dados tratados conforme a LGPD</p>
+    </div>
+  </footer>
+
+  {# VLibras: widget oficial do Governo Federal (tradução automática para Libras) #}
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper><div class="vw-plugin-top-wrapper"></div></div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer></script>
+  <script>
+    window.addEventListener("load", () => { if (window.VLibras) new window.VLibras.Widget("https://vlibras.gov.br/app"); });
+  </script>
+  <script src="{{ url_for('static', filename='js/iris-voz.js') }}" defer data-conteudo="#conteudo"></script>
+</body>
+</html>

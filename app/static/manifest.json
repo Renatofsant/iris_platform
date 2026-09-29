@@ -1,0 +1,23 @@
+{
+  "name": "Plataforma Íris — Acessibilidade Educacional",
+  "short_name": "Íris",
+  "description": "Adaptação de conteúdos de Física para estudantes com deficiência, TEA e TDAH, com ferramentas de leitura que funcionam sem internet.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "id": "/inclusao/",
+  "start_url": "/inclusao/?origem=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e1b4b",
+  "categories": ["education", "accessibility"],
+  "icons": [
+    { "src": "/static/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Adaptar conteúdo", "url": "/inclusao/", "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

@@ -1,0 +1,670 @@
+/*
+ * Plataforma Íris — estilos da página de adaptação de conteúdos.
+ * O layout usa Tailwind; este arquivo cuida do que o Tailwind não cobre bem:
+ * temas de contraste da área de leitura, tipografia escalável em "em",
+ * blocos pedagógicos e a folha de impressão otimizada para baixa visão.
+ */
+
+:root {
+  --iris-fonte-padrao: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --iris-fonte-atkinson: "Atkinson Hyperlegible", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --iris-fonte-dyslexic: "OpenDyslexic", "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------------
+ * Área de leitura (preview adaptado)
+ * Tudo dentro dela usa "em", então o controle de tamanho escala o conjunto.
+ * --------------------------------------------------------------------- */
+
+.iris-leitor {
+  /* Preferências controladas pelo JS */
+  --iris-fonte: 18px;
+  --iris-altura-linha: 1.5;
+  --iris-familia: var(--iris-fonte-padrao);
+
+  /* Tema padrão (contrastes ≥ 4.5:1) */
+  --iris-fundo: #ffffff;
+  --iris-texto: #1e293b;          /* slate-800 · 14.6:1 */
+  --iris-titulo: #0f172a;         /* slate-900 */
+  --iris-suave: #475569;          /* slate-600 · 7.6:1 */
+  --iris-marca: #4338ca;          /* indigo-700 · 8.6:1 */
+  --iris-marca-contraste: #ffffff;
+  --iris-link: #4338ca;
+  --iris-painel: #eef2ff;         /* indigo-50 */
+  --iris-borda: #e2e8f0;
+  --iris-realce-fundo: #fef3c7;   /* amber-100 */
+  --iris-realce-texto: #0f172a;
+  --iris-sucesso: #047857;        /* emerald-700 */
+
+  font-size: var(--iris-fonte);
+  line-height: var(--iris-altura-linha);
+  font-family: var(--iris-familia);
+  background: var(--iris-fundo);
+  color: var(--iris-texto);
+  border-radius: 1rem;
+  border: 1px solid var(--iris-borda);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  min-height: 22rem;
+  overflow-wrap: anywhere;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+/* Alto contraste escuro: fundo preto, texto amarelo (19.6:1) */
+.iris-leitor[data-tema="alto-escuro"] {
+  --iris-fundo: #000000;
+  --iris-texto: #ffff00;
+  --iris-titulo: #ffff00;
+  --iris-suave: #ffff00;
+  --iris-marca: #ffff00;
+  --iris-marca-contraste: #000000;
+  --iris-link: #00ffff;
+  --iris-painel: #111111;
+  --iris-borda: #ffff00;
+  --iris-realce-fundo: #ffff00;
+  --iris-realce-texto: #000000;
+  --iris-sucesso: #00ff66;
+}
+
+/* Alto contraste azul: fundo azul-marinho, texto branco (14:1) e títulos amarelos */
+.iris-leitor[data-tema="alto-azul"] {
+  --iris-fundo: #002b5c;
+  --iris-texto: #ffffff;
+  --iris-titulo: #ffe14d;
+  --iris-suave: #e2e8f0;
+  --iris-marca: #ffe14d;
+  --iris-marca-contraste: #002b5c;
+  --iris-link: #ffe14d;
+  --iris-painel: #003a7a;
+  --iris-borda: #ffe14d;
+  --iris-realce-fundo: #ffe14d;
+  --iris-realce-texto: #002b5c;
+  --iris-sucesso: #7dffb3;
+}
+
+/* Modo leitura sépia: menos brilho, contraste 11:1 */
+.iris-leitor[data-tema="sepia"] {
+  --iris-fundo: #f5ecd9;
+  --iris-texto: #3b2f1e;
+  --iris-titulo: #2a2014;
+  --iris-suave: #5c4a30;
+  --iris-marca: #7a3e00;
+  --iris-marca-contraste: #f5ecd9;
+  --iris-link: #7a3e00;
+  --iris-painel: #ebdfc4;
+  --iris-borda: #d6c5a0;
+  --iris-realce-fundo: #f1d98f;
+  --iris-realce-texto: #2a2014;
+  --iris-sucesso: #3f6212;
+}
+
+.iris-leitor[data-tipografia="atkinson"] { --iris-familia: var(--iris-fonte-atkinson); }
+.iris-leitor[data-tipografia="dyslexic"] {
+  --iris-familia: var(--iris-fonte-dyslexic);
+  word-spacing: 0.16em;
+  letter-spacing: 0.01em;
+}
+
+/* Ritmo vertical */
+.iris-leitor :where(p, ul, ol, dl, blockquote, pre, .iris-tabela) { margin: 0 0 0.9em; }
+.iris-leitor :where(p, li, dd, dt, blockquote) { max-width: 72ch; }
+.iris-leitor > :last-child, .iris-bloco > :last-child { margin-bottom: 0; }
+
+/* Títulos (h3 = título do material; h4+ = seções) */
+.iris-leitor :where(h3, h4, h5, h6) {
+  color: var(--iris-titulo);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+}
+.iris-leitor .iris-titulo { font-size: 1.65em; margin-top: 0.15em; letter-spacing: -0.01em; }
+.iris-leitor h4 { font-size: 1.3em; }
+.iris-leitor h5 { font-size: 1.12em; }
+.iris-leitor h6 { font-size: 1em; }
+.iris-leitor .iris-titulo:focus { outline: none; }
+/* A barra de ferramentas fica fixa no topo em telas grandes: o foco não pode ficar escondido sob ela. */
+@media (min-width: 1024px) {
+  .iris-leitor .iris-titulo, .iris-leitor :focus { scroll-margin-top: 12rem; }
+}
+.iris-leitor .iris-titulo:focus-visible { outline: 3px solid var(--iris-marca); outline-offset: 4px; border-radius: 4px; }
+
+.iris-leitor ul { list-style: disc; padding-left: 1.4em; }
+.iris-leitor ol { list-style: decimal; padding-left: 1.6em; }
+.iris-leitor li + li { margin-top: 0.35em; }
+.iris-leitor li::marker { color: var(--iris-marca); }
+
+.iris-leitor a { color: var(--iris-link); text-decoration: underline; text-underline-offset: 0.2em; }
+.iris-leitor :focus-visible { outline: 3px solid var(--iris-marca); outline-offset: 2px; }
+
+/* Negrito = conceito-chave (destaque visual moderado) */
+.iris-leitor strong {
+  font-weight: 700;
+  color: var(--iris-realce-texto);
+  background: var(--iris-realce-fundo);
+  padding: 0 0.18em;
+  border-radius: 0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.iris-leitor code, .iris-leitor pre {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  background: var(--iris-painel);
+  border-radius: 0.3em;
+}
+.iris-leitor code { padding: 0.08em 0.3em; font-size: 0.95em; }
+.iris-leitor pre { padding: 0.9em 1em; overflow-x: auto; }
+.iris-leitor pre code { padding: 0; background: none; }
+
+.iris-leitor blockquote {
+  border-left: 4px solid var(--iris-marca);
+  padding: 0.2em 0 0.2em 1em;
+  color: var(--iris-suave);
+}
+
+.iris-tabela { overflow-x: auto; }
+.iris-tabela:focus-visible { outline: 3px solid var(--iris-marca); outline-offset: 2px; }
+.iris-leitor table { border-collapse: collapse; width: 100%; font-size: 0.95em; }
+.iris-leitor th, .iris-leitor td { border: 1px solid var(--iris-borda); padding: 0.5em 0.75em; text-align: left; vertical-align: top; }
+.iris-leitor th { background: var(--iris-painel); color: var(--iris-titulo); }
+
+/* Cabeçalho do material */
+.iris-eyebrow {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--iris-marca);
+  margin: 0;
+}
+.iris-resumo {
+  font-size: 1.06em;
+  background: var(--iris-painel);
+  border-left: 4px solid var(--iris-marca);
+  border-radius: 0 0.75em 0.75em 0;
+  padding: 0.85em 1.1em;
+}
+
+/* Blocos pedagógicos */
+.iris-bloco { border-top: 1px solid var(--iris-borda); padding-top: 0.4em; margin-top: 1.6em; }
+.iris-bloco > h4:first-child { margin-top: 0.6em; }
+
+.iris-passos { list-style: none !important; padding: 0 !important; counter-reset: passo; }
+.iris-passos > li {
+  counter-increment: passo;
+  display: grid;
+  grid-template-columns: 2.1em minmax(0, 1fr);
+  gap: 0.8em;
+  align-items: start;
+}
+.iris-passos > li + li { margin-top: 0.9em; }
+.iris-passos > li::before {
+  content: counter(passo);
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 999px;
+  background: var(--iris-marca);
+  color: var(--iris-marca-contraste);
+  font-weight: 700;
+  font-size: 0.9em;
+}
+.iris-passos p { margin: 0.15em 0 0; }
+.iris-passos .iris-passo-titulo { font-weight: 700; color: var(--iris-titulo); margin: 0; }
+
+.iris-checklist { list-style: none !important; padding: 0 !important; }
+.iris-checklist label {
+  display: flex;
+  gap: 0.7em;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 0.35em 0.5em;
+  margin-left: -0.5em;
+  border-radius: 0.5em;
+}
+.iris-checklist label:hover { background: var(--iris-painel); }
+.iris-checklist input {
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: calc((var(--iris-altura-linha) * 1em - 1.15em) / 2);
+  accent-color: var(--iris-marca);
+  cursor: pointer;
+}
+.iris-checklist input:checked + span { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+.iris-destaques { list-style: none !important; padding: 0 !important; display: grid; gap: 0.5em; }
+.iris-destaques li {
+  background: var(--iris-painel);
+  border-radius: 0.6em;
+  padding: 0.55em 0.9em 0.55em 2.2em;
+  position: relative;
+}
+.iris-destaques li::before {
+  content: "";
+  position: absolute;
+  left: 0.9em;
+  top: calc(0.55em + (var(--iris-altura-linha) * 1em - 0.5em) / 2);
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 999px;
+  background: var(--iris-marca);
+}
+
+.iris-glossario dt { font-weight: 700; color: var(--iris-titulo); }
+.iris-glossario dd { margin: 0.15em 0 1em; }
+.iris-glossario .iris-exemplo { display: block; margin-top: 0.25em; color: var(--iris-suave); }
+.iris-glossario .iris-exemplo b { color: var(--iris-titulo); font-weight: 600; }
+
+.iris-audiodescricao {
+  border-left: 4px solid var(--iris-marca);
+  padding-left: 1em;
+}
+
+/* Estado vazio */
+.iris-vazio { display: grid; place-items: center; text-align: center; min-height: 18rem; color: var(--iris-suave); }
+.iris-vazio h3 { margin-top: 0.8em; font-size: 1.15em; }
+.iris-vazio p { margin: 0.4em auto 0; max-width: 42ch; font-size: 0.9em; }
+.iris-vazio svg { width: 3rem; height: 3rem; margin: 0 auto; color: var(--iris-marca); opacity: 0.8; }
+
+/* Modo edição do professor */
+.iris-leitor[contenteditable="true"] {
+  outline: 2px dashed var(--iris-marca);
+  outline-offset: 4px;
+  cursor: text;
+}
+
+/* Carregamento */
+.iris-skeleton {
+  display: block;
+  height: 1em;
+  border-radius: 0.4em;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: iris-brilho 1.4s ease-in-out infinite;
+}
+.iris-leitor:not([data-tema="padrao"]) .iris-skeleton { background: var(--iris-painel); animation: none; }
+@keyframes iris-brilho { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.iris-spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: iris-giro 0.7s linear infinite;
+}
+@keyframes iris-giro { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-skeleton, .iris-spinner { animation: none; }
+  .iris-leitor { transition: none; }
+}
+
+/* O botão padrão do VLibras é substituído pelo botão flutuante da Íris */
+#vlibras-access-wrapper { display: none !important; }
+
+/* ------------------------------------------------------------------------
+ * Glossário ilustrado (TEA) — pictogramas ARASAAC
+ * --------------------------------------------------------------------- */
+.iris-ilustrado { list-style: none !important; padding: 0 !important; display: grid; gap: 0.9em; }
+.iris-cartao {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: 1em;
+  align-items: start;
+  padding: 0.9em;
+  border: 2px solid var(--iris-borda);
+  border-radius: 0.9em;
+}
+.iris-ilustrado > li + li { margin-top: 0; }
+/* Pictogramas têm fundo branco: a moldura é sempre clara, em qualquer tema */
+.iris-picto {
+  width: 5.5em;
+  height: 5.5em;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--iris-borda);
+  border-radius: 0.6em;
+}
+.iris-picto img { width: 100%; height: 100%; object-fit: contain; }
+.iris-picto-vazio { font-size: 2.2em; font-weight: 700; color: #334155; }
+.iris-conceito { margin: 0 !important; font-size: 1.12em; font-weight: 700; color: var(--iris-titulo); }
+.iris-frase { margin: 0.2em 0 0 !important; }
+.iris-sugestao { margin: 0.45em 0 0 !important; font-size: 0.85em; color: var(--iris-suave); }
+.iris-sugestao b { color: var(--iris-titulo); }
+.iris-credito { margin-top: 0.9em !important; font-size: 0.72em; color: var(--iris-suave); }
+@media (max-width: 480px) {
+  .iris-cartao { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------------------------
+ * Equações (MathJax) e imagem analisada
+ * --------------------------------------------------------------------- */
+.iris-equacoes { list-style: none !important; padding: 0 !important; }
+.iris-equacoes > li + li { margin-top: 1.1em; }
+.iris-math-bloco { display: block; overflow-x: auto; overflow-y: hidden; padding: 0.3em 0; }
+.iris-leitor mjx-container { color: inherit; }
+.iris-leitura { margin: 0.25em 0 0 !important; color: var(--iris-suave); }
+.iris-leitura b { color: var(--iris-titulo); }
+.iris-codigo-latex { margin-top: 0.35em; font-size: 0.85em; }
+.iris-codigo-latex summary { cursor: pointer; color: var(--iris-link); width: max-content; }
+.iris-codigo-latex code { display: block; margin-top: 0.35em; padding: 0.5em 0.7em; white-space: pre-wrap; }
+.iris-figura-upload { margin: 0 0 1.2em; }
+.iris-figura-upload img {
+  display: block;
+  max-width: 100%;
+  max-height: 22em;
+  background: #fff;
+  border: 1px solid var(--iris-borda);
+  border-radius: 0.5em;
+}
+
+/* Área de upload: destaque ao arrastar um arquivo */
+#iris-imagem-soltar[data-arrastando="true"] .iris-zona-soltar { border-color: #4f46e5; background: #eef2ff; }
+
+/* Avaliação por estrelas (contorno slate-500: contraste 4.7:1 para componente de interface) */
+.iris-estrela svg { fill: none; color: #64748b; transition: fill 120ms ease, color 120ms ease; }
+.iris-estrela[data-ativa="true"] svg { fill: #f59e0b; color: #b45309; }
+@media (prefers-reduced-motion: reduce) { .iris-estrela svg { transition: none; } }
+
+/* ------------------------------------------------------------------------
+ * Consolidação: quiz interativo, gabarito, curiosidades e exemplos
+ * (em "em", com as variáveis do tema: acompanham fonte, contraste e tipografia)
+ * --------------------------------------------------------------------- */
+.iris-instrucao-tela { margin: 0.2em 0 0 !important; color: var(--iris-suave); font-size: 0.9em; }
+.iris-quiz { list-style: none !important; padding: 0 !important; display: grid; gap: 1.1em; }
+.iris-quiz > li + li { margin-top: 0; }
+.iris-questao fieldset {
+  margin: 0;
+  padding: 0.9em 1em 1em;
+  border: 2px solid var(--iris-borda);
+  border-radius: 0.9em;
+  min-width: 0;
+}
+.iris-enunciado { font-weight: 600; color: var(--iris-titulo); padding: 0 0.2em; max-width: none; }
+.iris-num { color: var(--iris-marca); font-weight: 700; }
+.iris-alternativas { list-style: none !important; padding: 0 !important; margin: 0.6em 0 0 !important; display: grid; gap: 0.4em; }
+.iris-alternativas > li + li { margin-top: 0; }
+.iris-alternativas label {
+  display: flex;
+  gap: 0.6em;
+  align-items: flex-start;
+  padding: 0.5em 0.7em;
+  border: 1px solid var(--iris-borda);
+  border-radius: 0.6em;
+  cursor: pointer;
+}
+.iris-alternativas label:hover { background: var(--iris-painel); }
+.iris-alternativas label:has(input:checked) { background: var(--iris-painel); border-color: var(--iris-marca); border-width: 2px; }
+.iris-alternativas input {
+  flex-shrink: 0;
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: calc((var(--iris-altura-linha) * 1em - 1.1em) / 2);
+  accent-color: var(--iris-marca);
+}
+.iris-letra { flex-shrink: 0; white-space: nowrap; font-weight: 700; color: var(--iris-titulo); }
+.iris-quiz-acoes { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.6em 1em; margin-top: 0.8em; }
+.iris-botao-conferir {
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 600;
+  padding: 0.4em 1.1em;
+  border-radius: 0.6em;
+  border: 0;
+  background: var(--iris-marca);
+  color: var(--iris-marca-contraste);
+  cursor: pointer;
+}
+.iris-botao-conferir:focus-visible { outline: 3px solid var(--iris-marca); outline-offset: 3px; }
+.iris-feedback { flex: 1 1 16em; margin: 0 !important; min-height: 1.4em; }
+.iris-feedback[data-estado] { padding: 0.3em 0.7em; border-left: 4px solid var(--iris-borda); border-radius: 0.3em; background: var(--iris-painel); }
+.iris-feedback[data-estado="certo"] { border-left-color: var(--iris-sucesso); }
+.iris-feedback[data-estado="errado"], .iris-feedback[data-estado="aviso"] { border-left-color: var(--iris-marca); }
+
+.iris-gabarito { padding-left: 0 !important; list-style: none !important; }
+.iris-gabarito > li { padding: 0.7em 0.9em; border-left: 4px solid var(--iris-sucesso); background: var(--iris-painel); border-radius: 0 0.6em 0.6em 0; }
+.iris-gabarito > li + li { margin-top: 0.7em; }
+.iris-gabarito p { margin: 0 !important; }
+.iris-gabarito p + p { margin-top: 0.3em !important; }
+
+.iris-curiosidades, .iris-exemplos { list-style: none !important; padding: 0 !important; display: grid; gap: 0.8em; }
+.iris-curiosidades > li + li, .iris-exemplos > li + li { margin-top: 0; }
+.iris-curiosidade, .iris-exemplo-pratico { padding: 0.8em 1em; border: 2px solid var(--iris-borda); border-radius: 0.9em; }
+.iris-curiosidade p, .iris-exemplo-pratico p { margin: 0 !important; }
+.iris-curiosidade p + p, .iris-exemplo-pratico p + p { margin-top: 0.35em !important; }
+.iris-curiosidade-titulo { font-weight: 700; color: var(--iris-titulo); }
+.iris-etiqueta {
+  display: inline-block;
+  margin-left: 0.3em;
+  padding: 0 0.5em;
+  font-size: 0.72em;
+  font-weight: 600;
+  vertical-align: 0.15em;
+  border-radius: 999px;
+  border: 1px solid var(--iris-marca);
+  color: var(--iris-marca);
+}
+.iris-cuidados { color: var(--iris-suave); font-size: 0.92em; }
+
+/* Roteiro de experimento sensorial */
+.iris-fichas { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.4em 0 1em !important; }
+.iris-fichas > div { padding: 0.35em 0.8em; border: 1px solid var(--iris-borda); border-radius: 0.6em; background: var(--iris-painel); }
+.iris-fichas dt { font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--iris-suave); }
+.iris-fichas dd { margin: 0; font-weight: 600; color: var(--iris-titulo); }
+.iris-roteiro-parte h5 { margin: 1.1em 0 0.35em; font-size: 1em; font-weight: 700; color: var(--iris-titulo); }
+.iris-roteiro-destaque { padding: 0.7em 0.9em; border-left: 4px solid var(--iris-marca); background: var(--iris-painel); border-radius: 0 0.6em 0.6em 0; }
+
+/* Mapa conceitual (Mermaid): fundo claro próprio, legível em qualquer tema de leitura */
+.iris-mapa-grafico {
+  margin: 1em 0 0;
+  padding: 1em;
+  border: 2px solid var(--iris-borda);
+  border-radius: 0.9em;
+  background: #ffffff;
+  color: #1e293b;
+  overflow-x: auto;
+  text-align: center;
+}
+.iris-mapa-grafico svg { max-width: 100%; height: auto; min-width: 32rem; }
+.iris-mapa-grafico[data-estado="erro"] { text-align: left; }
+.iris-codigo-mermaid { margin-top: 1.2em; font-size: 0.85em; }
+.iris-codigo-mermaid summary { cursor: pointer; color: var(--iris-suave); }
+.iris-codigo-mermaid pre { margin-top: 0.5em; padding: 0.8em; overflow-x: auto; border-radius: 0.6em; background: var(--iris-painel); font-size: 0.9em; line-height: 1.5; }
+
+.iris-print-only { display: none; }
+
+/* ------------------------------------------------------------------------
+ * Impressão / PDF — somente o material do aluno, com a fonte, a tipografia
+ * e o espaçamento escolhidos; cores forçadas para preto no branco.
+ * --------------------------------------------------------------------- */
+@media print {
+  @page { size: A4; margin: 16mm 14mm; }
+
+  html, body { background: #fff !important; height: auto !important; min-height: 0 !important; }
+  main > div { padding: 0 !important; }
+  .iris-eyebrow { display: none; } /* o cabeçalho impresso já informa o perfil */
+
+  .iris-no-print,
+  #vlibras-access-wrapper,
+  #vlibras-app-root,
+  [vw] { display: none !important; }
+
+  .iris-print-only { display: block !important; }
+
+  .iris-area-impressao {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+
+  .iris-leitor,
+  .iris-leitor[data-tema] {
+    --iris-fundo: #fff;
+    --iris-texto: #000;
+    --iris-titulo: #000;
+    --iris-suave: #000;
+    --iris-marca: #000;
+    --iris-marca-contraste: #fff;
+    --iris-link: #000;
+    --iris-painel: #fff;
+    --iris-borda: #000;
+    --iris-realce-fundo: transparent;
+    --iris-realce-texto: #000;
+    border: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    outline: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .iris-leitor strong { text-decoration: underline; text-decoration-thickness: 0.08em; }
+  .iris-resumo, .iris-destaques li { border: 1.5px solid #000; }
+  .iris-leitor a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; }
+
+  .iris-leitor :where(h3, h4, h5, h6) { break-after: avoid; page-break-after: avoid; }
+  .iris-leitor :where(li, dd, dt, tr, .iris-resumo, blockquote) { break-inside: avoid; page-break-inside: avoid; }
+  .iris-leitor p { orphans: 3; widows: 3; }
+}
+
+/* Cards de perfil: marca de seleção visível (o estado não depende só da cor) */
+.iris-perfil-marca svg { opacity: 0; transition: opacity 120ms ease; }
+input:checked + span .iris-perfil-marca { background: #0f172a; border-color: #0f172a; }
+input:checked + span .iris-perfil-marca svg { opacity: 1; }
+
+/* ------------------------------------------------------------------------
+ * Termos técnicos com atalho para Libras (inclusao.js, seção 16)
+ * Usam as variáveis do tema: funcionam nos quatro contrastes.
+ * --------------------------------------------------------------------- */
+
+.iris-termo {
+  display: inline; padding: 0 0.12em; margin: 0; border: 0; border-bottom: 0.12em dotted var(--iris-marca);
+  border-radius: 0.2em; background: var(--iris-painel); color: inherit; font: inherit; line-height: inherit;
+  cursor: help; text-align: inherit;
+}
+.iris-termo:hover, .iris-termo[aria-expanded="true"] { background: var(--iris-realce-fundo); color: var(--iris-realce-texto); }
+.iris-termo:focus-visible { outline: 3px solid var(--iris-link); outline-offset: 2px; }
+[contenteditable="true"] .iris-termo { cursor: text; }
+
+.iris-termo-cartao {
+  position: absolute; z-index: 60; width: min(22rem, calc(100vw - 2rem)); padding: 0.9rem 1rem;
+  border: 1px solid #c7d2fe; border-radius: 0.9rem; background: #fff; color: #1e293b;
+  box-shadow: 0 20px 40px -12px rgb(15 23 42 / 0.35); font: 0.95rem/1.5 Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.iris-termo-cartao[hidden] { display: none; }
+.iris-termo-cartao h3 { margin: 0 0 0.3rem; font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+.iris-termo-cartao p { margin: 0 0 0.45rem; }
+.iris-termo-cartao .iris-termo-exemplo { color: #475569; font-size: 0.9rem; }
+.iris-termo-cartao .iris-termo-nota { color: #475569; font-size: 0.8rem; }
+.iris-termo-cartao .iris-termo-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+.iris-termo-cartao button {
+  height: 2.25rem; padding: 0 0.8rem; border-radius: 0.6rem; border: 1px solid #cbd5e1; background: #fff;
+  color: #0f172a; font: 600 0.875rem Inter, sans-serif; cursor: pointer;
+}
+.iris-termo-cartao button.primario { border-color: #6d28d9; background: #6d28d9; color: #fff; }
+.iris-termo-cartao button:focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
+
+/* ------------------------------------------------------------------------
+ * Mapa conceitual simplificado: blocos de causa → efeito (inclusao.js, seção 17)
+ * --------------------------------------------------------------------- */
+
+.iris-organizador { margin: 1.2em 0 1.6em; padding: 0.9em 1em; border: 2px solid var(--iris-marca); border-radius: 0.9em; background: var(--iris-painel); }
+.iris-organizador > h4 { margin: 0 !important; color: var(--iris-titulo); }
+.iris-organizador-dica { margin: 0.2em 0 0.8em !important; color: var(--iris-suave); font-size: 0.85em; }
+.iris-fluxo { list-style: none !important; padding: 0 !important; margin: 0 !important; display: grid; gap: 1em; }
+.iris-fluxo > li { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 0.5em; }
+.iris-fluxo-bloco { padding: 0.55em 0.75em; border: 1px solid var(--iris-borda); border-radius: 0.6em; background: var(--iris-fundo); }
+.iris-fluxo-rotulo { display: block; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--iris-marca); }
+.iris-fluxo-seta { display: grid; place-items: center; min-width: 4.5em; text-align: center; font-size: 0.78em; font-weight: 700; color: var(--iris-marca); }
+.iris-fluxo-seta::after { content: "→"; display: block; font-size: 1.8em; line-height: 1; }
+.iris-fluxo[data-tipo="sequencia"] > li { grid-template-columns: minmax(0, 1fr); }
+.iris-fluxo[data-tipo="sequencia"] > li + li::before { content: "↓"; justify-self: center; font-size: 1.4em; line-height: 1; color: var(--iris-marca); }
+@media (max-width: 640px) {
+  .iris-fluxo > li { grid-template-columns: minmax(0, 1fr); }
+  .iris-fluxo-seta::after { content: "↓"; }
+}
+
+/* ------------------------------------------------------------------------
+ * Anti-fadiga e foco (static/js/apoio_cognitivo.js)
+ * --------------------------------------------------------------------- */
+
+.iris-regua { position: absolute; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; border-radius: inherit; }
+.iris-regua[hidden] { display: none; }
+.iris-regua-veu { position: absolute; left: 0; right: 0; background: rgb(15 23 42 / 0.55); }
+.iris-regua-topo { top: 0; }
+.iris-regua-base { bottom: 0; }
+.iris-regua-faixa { position: absolute; left: 0; right: 0; box-shadow: inset 0 2px 0 #6366f1, inset 0 -2px 0 #6366f1; }
+
+/* Foco mínimo: só o material, em coluna de leitura confortável */
+body[data-foco-minimo] > header,
+body[data-foco-minimo] > footer,
+body[data-foco-minimo] #conteudo-principal > div > div:first-child,
+body[data-foco-minimo] section[aria-labelledby="titulo-config"],
+body[data-foco-minimo] section[aria-labelledby="titulo-preview"] > div:first-child,
+body[data-foco-minimo] #iris-ferramentas,
+body[data-foco-minimo] #iris-notas,
+body[data-foco-minimo] #iris-avaliacao,
+body[data-foco-minimo] #iris-vlibras { display: none !important; }
+body[data-foco-minimo] section[aria-labelledby="titulo-preview"] { grid-column: 1 / -1; border-color: transparent; box-shadow: none; }
+body[data-foco-minimo] #iris-area-simulada { max-width: 62rem; margin-inline: auto; }
+body[data-foco-minimo] { background: #f8fafc; }
+
+.iris-foco-barra {
+  position: fixed; right: 1rem; bottom: 1rem; z-index: 50; display: flex; gap: 0.4rem; padding: 0.4rem;
+  border: 1px solid #c7d2fe; border-radius: 999px; background: #fff; box-shadow: 0 10px 25px rgb(15 23 42 / 0.2);
+}
+.iris-foco-barra[hidden] { display: none; }
+.iris-foco-barra button {
+  height: 2.5rem; min-width: 2.5rem; padding: 0 0.9rem; border: 1px solid #cbd5e1; border-radius: 999px;
+  background: #fff; color: #0f172a; font: 600 0.9rem Inter, sans-serif; cursor: pointer;
+}
+.iris-foco-barra button:last-child { border-color: #4338ca; background: #4338ca; color: #fff; }
+.iris-foco-barra button[aria-pressed="true"] { border-color: #4338ca; background: #eef2ff; color: #3730a3; }
+.iris-foco-barra button:focus-visible { outline: 3px solid #22d3ee; outline-offset: 2px; }
+
+/* Pausa regulatória: cores calmas, sem animação chamativa */
+.iris-pausa {
+  width: min(30rem, calc(100vw - 2rem)); padding: 1.4rem 1.5rem; border: 0; border-radius: 1.1rem;
+  background: #f0fdfa; color: #134e4a; box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.4); font: 1rem/1.55 Inter, sans-serif;
+}
+.iris-pausa::backdrop { background: rgb(15 23 42 / 0.45); }
+.iris-pausa-selo { margin: 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #0f766e; }
+.iris-pausa h2 { margin: 0.2rem 0 0.6rem; font-size: 1.2rem; font-weight: 700; color: #042f2e; }
+.iris-pausa ol { margin: 0 0 0.9rem; padding-left: 1.3rem; list-style: decimal; }
+.iris-pausa li { margin-bottom: 0.3rem; }
+.iris-pausa-progresso { height: 0.6rem; border-radius: 999px; background: #ccfbf1; overflow: hidden; }
+.iris-pausa-progresso[hidden], .iris-pausa-contagem[hidden] { display: none; }
+.iris-pausa-progresso span { display: block; width: 0; height: 100%; background: #0d9488; transition: width 1s linear; }
+.iris-pausa-contagem { margin: 0.4rem 0 0.8rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.iris-pausa-acoes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.iris-pausa-acoes button {
+  height: 2.5rem; padding: 0 1rem; border: 1px solid #99f6e4; border-radius: 0.7rem; background: #fff;
+  color: #134e4a; font: 600 0.9rem Inter, sans-serif; cursor: pointer;
+}
+.iris-pausa-acoes button.primario { border-color: #0f766e; background: #0f766e; color: #fff; }
+.iris-pausa-acoes button[hidden] { display: none; }
+.iris-pausa-acoes button:focus-visible { outline: 3px solid #0d9488; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .iris-pausa-progresso span { transition: none; }
+}
+@media print {
+  .iris-regua, .iris-foco-barra, .iris-termo-cartao, .iris-pausa { display: none !important; }
+  .iris-termo { border: 0; background: none; padding: 0; }
+}
+
+/* Faixa "Modo offline" (static/js/pwa.js): texto escuro sobre âmbar claro, contraste ≥ 7:1 */
+.iris-faixa-offline {
+  position: sticky; top: 0; z-index: 45; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.55rem 1rem; border-bottom: 1px solid #fcd34d; background: #fffbeb; color: #451a03;
+  font: 0.9rem/1.4 Inter, ui-sans-serif, system-ui, sans-serif; text-align: center;
+}
+.iris-faixa-offline svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+.iris-faixa-offline p { margin: 0; }

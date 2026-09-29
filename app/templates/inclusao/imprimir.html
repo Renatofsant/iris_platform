@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      data-contraste="{{ preferencias.contraste }}"
+      data-tipografia="{{ preferencias.tipografia }}"
+      data-colunas="{{ preferencias.colunas }}"
+      style="--iris-fonte: {{ preferencias.fonte_pt }}pt; --iris-entrelinhas: {{ preferencias.entrelinhas }};">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>{{ material.titulo }} · Impressão · Plataforma Íris</title>
+{% include "_favicon.html" %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5.3.0/400.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic@5.3.0/700.css">
+
+  {# Tailwind apenas para a barra de controles (que não é impressa). #}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      corePlugins: { preflight: false },  // não interfere na tipografia da folha
+      theme: { extend: { fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] } } },
+    };
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/impressao.css') }}">
+  <script type="module" src="{{ url_for('static', filename='js/impressao.js') }}"></script>
+</head>
+
+{%- set classe_controle = "h-9 rounded-lg border border-solid border-slate-300 bg-white px-2 text-sm text-slate-800 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40" -%}
+{%- set classe_rotulo = "mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-600" -%}
+
+<body class="font-sans">
+  <a href="#iris-folha" class="iris-sem-impressao sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-indigo-700 focus:px-4 focus:py-3 focus:text-white">
+    Pular para a folha
+  </a>
+  <div id="iris-status" class="iris-sem-impressao sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  {# ===================== Controles (somente tela) ===================== #}
+  <header class="iris-sem-impressao sticky top-0 z-30 border-0 border-b border-solid border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <div class="flex min-w-0 items-center gap-3">
+        <a href="{{ url_for('inclusao_pagina.pagina') }}"
+           class="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-slate-700 no-underline hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          Voltar
+        </a>
+        <div class="min-w-0">
+          <h1 class="m-0 truncate text-base font-semibold text-slate-900">Versão para impressão</h1>
+          <p class="m-0 text-xs text-slate-600">
+            Perfil: <span class="font-medium text-slate-800">{{ material.perfil_nome }}</span>
+            <span aria-hidden="true">·</span> o perfil não aparece na folha do aluno
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+      <button type="button" id="iris-docx" data-url="{{ url_for('inclusao.baixar_docx', id_material=material.id) }}"
+              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-solid border-indigo-200 bg-indigo-50 px-4 text-sm font-semibold text-indigo-800 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+        <span id="iris-docx-rotulo">Baixar Word (.docx)</span>
+      </button>
+      <button type="button" id="iris-imprimir"
+              class="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border-0 bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+        Imprimir / Salvar PDF
+      </button>
+      </div>
+    </div>
+
+    <form id="iris-controles" class="mx-auto flex max-w-6xl flex-wrap items-end gap-x-5 gap-y-3 px-4 pb-3" aria-label="Preferências de impressão" onsubmit="return false">
+      <div>
+        <label for="iris-fonte" class="{{ classe_rotulo }}">Tamanho da fonte (pt)</label>
+        <div class="flex items-center gap-1">
+          <button type="button" data-fonte-passo="-2" aria-label="Diminuir fonte em 2 pontos"
+                  class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-solid border-slate-300 bg-white text-lg leading-none text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">−</button>
+          <input id="iris-fonte" name="fonte_pt" type="number" inputmode="numeric"
+                 min="{{ limites.fonte_min }}" max="{{ limites.fonte_max }}" step="1" value="{{ preferencias.fonte_pt }}"
+                 class="{{ classe_controle }} w-16 text-center font-semibold tabular-nums">
+          <button type="button" data-fonte-passo="2" aria-label="Aumentar fonte em 2 pontos"
+                  class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-solid border-slate-300 bg-white text-lg leading-none text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">+</button>
+          <div class="ml-1 flex gap-1" role="group" aria-label="Tamanhos rápidos">
+            {% for tamanho in [18, 24, 28, 36] %}
+            <button type="button" data-fonte-atalho="{{ tamanho }}" aria-pressed="false"
+                    class="h-9 cursor-pointer rounded-lg border border-solid border-slate-300 bg-white px-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 aria-pressed:border-indigo-600 aria-pressed:bg-indigo-600 aria-pressed:text-white">
+              {{ tamanho }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label for="iris-contraste" class="{{ classe_rotulo }}">Contraste</label>
+        <select id="iris-contraste" name="contraste" class="{{ classe_controle }}">
+          <option value="pb-alto">Alto contraste P&amp;B</option>
+          <option value="padrao">Padrão (tons de cinza)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="iris-tipografia" class="{{ classe_rotulo }}">Tipografia</label>
+        <select id="iris-tipografia" name="tipografia" class="{{ classe_controle }}">
+          <option value="padrao">Inter (padrão)</option>
+          <option value="atkinson">Atkinson Hyperlegible</option>
+          <option value="dyslexic">OpenDyslexic</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="iris-entrelinhas" class="{{ classe_rotulo }}">Entrelinhas</label>
+        <select id="iris-entrelinhas" name="entrelinhas" class="{{ classe_controle }}">
+          <option value="1.5">Normal (1,5)</option>
+          <option value="1.8">Ampliado (1,8)</option>
+          <option value="2.0">Máximo (2,0)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="iris-colunas" class="{{ classe_rotulo }}">Layout</label>
+        <select id="iris-colunas" name="colunas" class="{{ classe_controle }}" aria-describedby="dica-colunas">
+          <option value="1">Coluna única</option>
+          <option value="2">Duas colunas</option>
+        </select>
+        <span id="dica-colunas" class="sr-only">Duas colunas só estão disponíveis até {{ limites.fonte_max_duas_colunas }} pontos.</span>
+      </div>
+
+      {% if material.guia_mediador %}
+      <div>
+        <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-600" aria-hidden="true">Mediador</span>
+        <label class="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-solid border-slate-300 bg-white px-3 text-sm text-slate-800">
+          <input type="checkbox" id="iris-incluir-guia" name="incluir_guia" class="h-4 w-4 accent-indigo-600" {% if preferencias.incluir_guia %}checked{% endif %}>
+          Incluir orientações ao mediador
+        </label>
+      </div>
+      {% endif %}
+
+      <div>
+        <label for="iris-linhas" class="{{ classe_rotulo }}">Linhas p/ resposta</label>
+        <input id="iris-linhas" name="linhas_resposta" type="number" inputmode="numeric" min="0" max="{{ limites.linhas_max }}" step="1"
+               value="{{ preferencias.linhas_resposta }}" class="{{ classe_controle }} w-20 tabular-nums">
+      </div>
+    </form>
+
+    <div id="iris-alertas" class="mx-auto max-w-6xl px-4">
+      {% for aviso in avisos %}
+      <p class="mb-3 mt-0 rounded-lg border border-solid border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">{{ aviso }}</p>
+      {% endfor %}
+    </div>
+
+    <details class="mx-auto max-w-6xl px-4 pb-3 text-sm text-slate-700">
+      <summary class="cursor-pointer rounded font-medium text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+        Como garantir o tamanho exato da fonte na impressão
+      </summary>
+      <ul class="mb-0 mt-2 list-disc space-y-1 pl-5">
+        <li><strong>Escala:</strong> mantenha em <em>100%</em> / <em>Padrão</em> (nunca “Ajustar à página”).</li>
+        <li><strong>Cabeçalhos e rodapés:</strong> desmarque, para o navegador não imprimir data e endereço da página.</li>
+        <li><strong>Margens:</strong> <em>Padrão</em>. Para gerar PDF, escolha o destino <em>Salvar como PDF</em>.</li>
+        <li>O contraste “Alto contraste P&amp;B” não depende de cores de fundo e funciona em qualquer impressora.</li>
+      </ul>
+    </details>
+  </header>
+
+  {# ===================== Folha (o que é impresso) ===================== #}
+  <main id="iris-folha" class="iris-folha" tabindex="-1"
+        data-id="{{ material.id }}"
+        data-titulo="{{ material.titulo }}"
+        data-preferencias='{{ preferencias | tojson }}'
+        data-limites='{{ limites | tojson }}'>
+
+    <section class="iris-cabecalho" aria-label="Cabeçalho escolar">
+      <div class="iris-campo iris-campo--inteiro">
+        <label for="cab-escola">Escola:</label>
+        <input id="cab-escola" name="escola" type="text" autocomplete="organization" placeholder="Nome da escola">
+      </div>
+      <div class="iris-campo iris-campo--inteiro">
+        <label for="cab-aluno">Aluno(a):</label>
+        <input id="cab-aluno" name="aluno" type="text" autocomplete="off" placeholder="Nome do aluno ou da aluna">
+      </div>
+      <div class="iris-campo iris-campo--metade">
+        <label for="cab-turma">Turma:</label>
+        <input id="cab-turma" name="turma" type="text" autocomplete="off">
+      </div>
+      <div class="iris-campo iris-campo--metade">
+        <label for="cab-data">Data:</label>
+        <input id="cab-data" name="data" type="text" inputmode="numeric" autocomplete="off" placeholder="dd/mm/aaaa">
+      </div>
+      <div class="iris-campo iris-campo--metade">
+        <label for="cab-disciplina">Disciplina:</label>
+        <input id="cab-disciplina" name="disciplina" type="text" value="Física" autocomplete="off">
+      </div>
+      <div class="iris-campo iris-campo--metade">
+        <label for="cab-professor">Professor(a):</label>
+        <input id="cab-professor" name="professor" type="text" autocomplete="off">
+      </div>
+    </section>
+
+    <h1>{{ material.titulo }}</h1>
+
+    <div class="iris-conteudo">
+      {# HTML sanitizado no servidor (nh3) ao salvar o material. #}
+      {{ material.conteudo_html | safe }}
+    </div>
+
+    <section id="iris-respostas" class="iris-respostas" aria-label="Espaço para respostas"
+             {% if not preferencias.linhas_resposta %}hidden{% endif %}>
+      <h2>Respostas</h2>
+      <div id="iris-linhas-resposta">
+        {% for _ in range(preferencias.linhas_resposta) %}<div class="iris-linha-resposta"></div>{% endfor %}
+      </div>
+    </section>
+
+    {% if material.guia_mediador %}
+    {% set guia = material.guia_mediador %}
+    {% set niveis = {"elementar": "Elementar", "basico": "Básico", "intermediario": "Intermediário", "avancado": "Avançado"} %}
+    <section id="iris-guia" class="iris-guia" aria-labelledby="guia-titulo" {% if not preferencias.incluir_guia %}hidden{% endif %}>
+      <h2 id="guia-titulo">Orientações para o Mediador/Professor</h2>
+      <p class="iris-instrucao">Página para o professor — não entregar ao estudante.</p>
+      {% if guia.nivel_original or guia.nivel_adaptado %}
+      <p><strong>Complexidade:</strong> {{ niveis.get(guia.nivel_original, "—") }} → {{ niveis.get(guia.nivel_adaptado, "—") }}.
+        {% if guia.justificativa %}{{ guia.justificativa }}{% endif %}</p>
+      {% endif %}
+      {% for chave, rotulo in [("ajustes_realizados", "Ajustes realizados"), ("sugestoes_mediacao", "Sugestões de mediação"), ("pontos_de_atencao", "Pontos de atenção")] %}
+        {% if guia[chave] %}
+        <h3>{{ rotulo }}</h3>
+        <ul>{% for item in guia[chave] %}<li>{{ item }}</li>{% endfor %}</ul>
+        {% endif %}
+      {% endfor %}
+    </section>
+    {% endif %}
+  </main>
+  <script src="{{ url_for('static', filename='js/iris-voz.js') }}" defer
+          data-endpoint="{{ url_for('inclusao.perguntar_voz') }}" data-conteudo="#iris-folha"></script>
+</body>
+</html>

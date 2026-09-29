@@ -1,0 +1,16 @@
+# Copie para scripts/deploy.conf (não versionado) e preencha com os dados do hPanel.
+# hPanel → Avançado → Acesso SSH: usuário, IP e porta.
+HOSTINGER_SSH="u123456789@123.45.67.89"
+HOSTINGER_PORTA="65002"
+
+# Raiz do aplicativo Python (a "Application root" configurada no painel), caminho absoluto.
+HOSTINGER_DIR_APP="/home/u123456789/domains/exemplo.com.br/iris"
+
+# bin/activate do virtualenv criado pelo painel (o hPanel mostra o comando "source …/activate").
+HOSTINGER_VENV="/home/u123456789/virtualenv/domains/exemplo.com.br/iris/3.12/bin/activate"
+
+# Endereço público para a checagem final (sem barra no fim).
+URL_SITE="https://exemplo.com.br"
+
+# Quantos backups de código e de banco manter em ~/iris-backups.
+MANTER_BACKUPS="5"

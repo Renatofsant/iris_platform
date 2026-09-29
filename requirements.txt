@@ -1,0 +1,14 @@
+flask>=3.0
+flask-login>=0.6.3
+anthropic>=1.9
+nh3>=0.2
+python-docx>=1.1
+pypdf>=5.0
+# Provedores alternativos (opcionais; só são usados se GEMINI_API_KEY / GROQ_API_KEY existirem)
+google-genai>=1.30
+groq>=0.30
+# Supabase (autenticação) e carregamento do .env
+supabase>=2.10
+python-dotenv>=1.0
+# Somente para scripts/setup_supabase.py via string de conexão Postgres
+psycopg[binary]>=3.2

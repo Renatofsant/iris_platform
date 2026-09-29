@@ -1,0 +1,48 @@
+{% extends "auth/base.html" %}
+{% block titulo %}Nova senha{% endblock %}
+{% macro invalido(nome) %}{% if campo_erro == nome %}aria-invalid="true" aria-describedby="erro-formulario"{% endif %}{% endmacro %}
+{% block conteudo %}
+  <h1 class="text-center text-xl font-semibold text-slate-900">Criar nova senha</h1>
+  <p class="mt-1 text-center text-sm text-slate-600">Mínimo de {{ senha_minima }} caracteres.</p>
+
+  {% if erro %}
+  <div id="erro-formulario" tabindex="-1" role="alert" class="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-900 focus:outline-none">{{ erro }}</div>
+  {% endif %}
+  <div id="link-invalido" role="alert" hidden class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+    Este link não é válido ou expirou. <a href="{{ url_for('auth.redefinir_senha') }}" class="font-semibold underline">Peça um novo link</a>.
+  </div>
+
+  <form id="form-nova-senha" method="post" action="{{ url_for('auth.nova_senha') }}" class="mt-5 space-y-4" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="access_token" value="{{ request.form.get('access_token', '') }}">
+    <input type="hidden" name="refresh_token" value="{{ request.form.get('refresh_token', '') }}">
+    <input type="hidden" name="token_hash" value="{{ token_hash }}">
+    <div>
+      <label for="senha" class="text-sm font-medium text-slate-800">Nova senha</label>
+      <input id="senha" name="senha" type="password" autocomplete="new-password" required minlength="{{ senha_minima }}" {{ invalido("senha") }} class="{{ classe_campo }}">
+    </div>
+    <div>
+      <label for="confirmacao" class="text-sm font-medium text-slate-800">Repita a nova senha</label>
+      <input id="confirmacao" name="confirmacao" type="password" autocomplete="new-password" required {{ invalido("confirmacao") }} class="{{ classe_campo }}">
+    </div>
+    <button type="submit" class="h-11 w-full rounded-xl bg-indigo-600 text-[15px] font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">Salvar nova senha</button>
+  </form>
+  <script>
+    // O link do Supabase traz os tokens no fragmento (#access_token=…), que não chega ao servidor.
+    // Copia-os para o formulário e limpa a barra de endereço (o token não fica no histórico).
+    (() => {
+      const form = document.getElementById("form-nova-senha");
+      const dados = new URLSearchParams(location.hash.slice(1));
+      if (dados.get("access_token")) {
+        form.elements.access_token.value = dados.get("access_token");
+        form.elements.refresh_token.value = dados.get("refresh_token") || "";
+        history.replaceState(null, "", location.pathname + location.search);
+      }
+      const temToken = form.elements.access_token.value || form.elements.token_hash.value;
+      if (dados.get("error") || !temToken) {
+        document.getElementById("link-invalido").hidden = false;
+        form.hidden = true;
+      }
+    })();
+  </script>
+{% endblock %}
